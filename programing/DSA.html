@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA Lab 3D | Grand Master Edition Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --accent: #10b981; 
+            --accent-glow: rgba(16, 185, 129, 0.4);
+            --bg: #020617; 
+            --panel-bg: rgba(15, 23, 42, 0.85);
+        }
+
+        body { 
+            margin: 0; 
+            background-color: var(--bg); 
+            color: #f8fafc; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            overflow: hidden; 
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        canvas { display: block; }
+
+        /* Typography */
+        .math-font { font-family: 'Fira Code', monospace; }
+        
+        /* Premium Glassmorphism */
+        .glass { 
+            background: var(--panel-bg); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* UI Layout */
+        .ui-panel { 
+            position: fixed; 
+            top: 100px; 
+            left: 24px; 
+            width: 420px; 
+            z-index: 100; 
+            max-height: calc(100vh - 140px);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Navigation Styling */
+        .nav-btn { 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            border: 1px solid transparent;
+            position: relative;
+        }
+        .nav-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        .nav-btn.active { 
+            background: rgba(16, 185, 129, 0.1); 
+            color: var(--accent); 
+            border-color: rgba(16, 185, 129, 0.3);
+            transform: translateY(-2px);
+        }
+        .nav-btn.active::after { width: 50%; }
+        
+        /* Cards & Buttons */
+        .action-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.02);
+        }
+        .action-card:hover {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 10px; 
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* Code Highlighting */
+        .code-keyword { color: #c084fc; font-weight: 600; }
+        .code-func { color: #38bdf8; }
+        .code-comment { color: #64748b; font-style: italic; }
+        .code-type { color: #2dd4bf; }
+
+        #canvas-container { 
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 0; 
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .scanline {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: rgba(16, 185, 129, 0.05);
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+        }
+
+        .hud-glow {
+            text-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .ui-panel { width: calc(100% - 48px); left: 24px; top: 80px; }
+            .nav-container { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+    <div class="scanline"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-[1000] glass px-8 py-5 flex justify-between items-center border-b border-white/5">
+        <div class="flex items-center space-x-5">
+            <div class="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center font-black text-white shadow-xl shadow-emerald-900/20 transform rotate-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black tracking-tighter text-white leading-none italic">DSA<span class="text-emerald-500">LAB</span></h1>
+                <span class="text-[10px] text-slate-500 uppercase tracking-[0.4em] font-extrabold">3D Visual Kernel</span>
+            </div>
+        </div>
+
+        <div class="hidden lg:flex bg-slate-950/60 p-1.5 rounded-2xl border border-white/10 nav-container">
+            <button onclick="switchMode('sort')" id="btn-sort" class="nav-btn active px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">Sorting</button>
+            <button onclick="switchMode('list')" id="btn-list" class="nav-btn px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">Lists</button>
+            <button onclick="switchMode('tree')" id="btn-tree" class="nav-btn px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">Trees</button>
+            <button onclick="switchMode('graph')" id="btn-graph" class="nav-btn px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">Graphs</button>
+            <button onclick="switchMode('linear')" id="btn-linear" class="nav-btn px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">Linear</button>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <div class="flex flex-col items-end mr-2">
+                <span id="fps-display" class="text-[9px] font-mono text-emerald-500/60">FPS: 60</span>
+                <span id="node-count" class="text-[9px] font-mono text-slate-500">NODES: 0</span>
+            </div>
+            <button onclick="resetCamera()" class="p-3 rounded-xl glass hover:bg-emerald-500/10 text-emerald-500 transition-all border-emerald-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- UI Panel -->
+    <div class="ui-panel glass p-7 rounded-[2.5rem] overflow-hidden">
+        
+        <div id="module-controls" class="space-y-6 flex-shrink-0">
+            <!-- Content Injected via JS -->
+        </div>
+
+        <!-- Terminal -->
+        <div class="flex-1 flex flex-col min-h-0">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <div class="flex items-center space-x-2">
+                    <div class="w-1.5 h-4 bg-emerald-500 rounded-full"></div>
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Logic Source</span>
+                </div>
+                <div class="flex space-x-1.5">
+                    <div class="w-2 h-2 rounded-full bg-slate-800"></div>
+                    <div class="w-2 h-2 rounded-full bg-emerald-500/50"></div>
+                </div>
+            </div>
+            <div class="bg-slate-950/90 p-6 rounded-3xl border border-white/5 flex-1 overflow-y-auto custom-scroll shadow-2xl">
+                <pre id="code-terminal" class="math-font text-[12px] text-slate-400 leading-relaxed"></pre>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="pt-4 border-t border-white/5 flex items-center justify-between">
+            <div class="flex flex-col">
+                <span class="text-[8px] uppercase text-slate-500 font-bold tracking-[0.2em]">Execution Latency</span>
+                <input type="range" id="speed-slider" min="10" max="1000" value="300" class="w-32 accent-emerald-500 mt-2 h-1">
+            </div>
+            <div id="engine-status" class="flex items-center space-x-2">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Kernel Ready</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUD Overlay -->
+    <div class="fixed bottom-12 right-12 text-right pointer-events-none select-none">
+        <div id="hud-val" class="hud-glow text-[140px] font-black text-emerald-500 opacity-[0.08] tracking-tighter italic leading-none uppercase">IDLE</div>
+        <div class="mt-4">
+            <div id="hud-label" class="text-sm font-bold text-slate-300 tracking-[0.5em] uppercase">Operation Standby</div>
+            <div class="text-[10px] text-emerald-500/40 font-black uppercase tracking-[0.3em] mt-2">Laboratory v5.4.1 PRO</div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * DSA Lab 3D Engine
+         * Built with Three.js & TWEEN.js
+         */
+
+        const CONFIG = {
+            COLORS: {
+                bg: 0x020617,
+                primary: 0x10b981,
+                secondary: 0x6366f1,
+                highlight: 0xfbbf24,
+                danger: 0xef4444,
+                surface: 0x1e293b,
+                link: 0x334155
+            },
+            NODE_RADIUS: 1.2
+        };
+
+        let scene, camera, renderer, controls, clock;
+        let nodes = [], links = [];
+        let isProcessing = false;
+        let globalSpeed = 300;
+        let currentMode = 'sort';
+
+        // Stats tracking
+        let frameCount = 0;
+        let lastTime = performance.now();
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(CONFIG.COLORS.bg);
+            scene.fog = new THREE.FogExp2(CONFIG.COLORS.bg, 0.012);
+
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(25, 25, 50);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Lights
+            const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+            const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+            mainLight.position.set(20, 50, 20);
+            mainLight.castShadow = true;
+            
+            const point = new THREE.PointLight(CONFIG.COLORS.primary, 1, 100);
+            point.position.set(-20, 20, 20);
+
+            scene.add(ambient, mainLight, point);
+
+            // Grid
+            const grid = new THREE.GridHelper(200, 80, 0x1e293b, 0x0f172a);
+            grid.position.y = -5;
+            scene.add(grid);
+
+            window.addEventListener('resize', onWindowResize);
+            
+            // Speed Slider
+            document.getElementById('speed-slider').addEventListener('input', (e) => {
+                globalSpeed = 1010 - e.target.value;
+            });
+
+            switchMode('sort');
+            animate();
+        }
+
+        /**
+         * Core Scene Management
+         */
+        function wipeScene() {
+            nodes.forEach(n => scene.remove(n));
+            links.forEach(l => scene.remove(l.mesh || l));
+            nodes = []; links = [];
+            TWEEN.removeAll();
+            isProcessing = false;
+            updateStatus("IDLE");
+        }
+
+        function createNode(x, y, z, color = CONFIG.COLORS.primary, isBox = false) {
+            const geo = isBox ? new THREE.BoxGeometry(2, 2, 2) : new THREE.SphereGeometry(CONFIG.NODE_RADIUS, 32, 32);
+            const mat = new THREE.MeshPhongMaterial({ color, shininess: 80, transparent: true, opacity: 0.95 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(x, y, z);
+            mesh.castShadow = true;
+            scene.add(mesh);
+            nodes.push(mesh);
+            
+            mesh.scale.set(0,0,0);
+            new TWEEN.Tween(mesh.scale).to({x:1,y:1,z:1}, 600).easing(TWEEN.Easing.Back.Out).start();
+            
+            document.getElementById('node-count').innerText = "NODES: " + nodes.length;
+            return mesh;
+        }
+
+        function createLink(startMesh, endMesh) {
+            const geo = new THREE.CylinderGeometry(0.12, 0.12, 1, 8);
+            const mat = new THREE.MeshPhongMaterial({ color: CONFIG.COLORS.link, transparent: true, opacity: 0.4 });
+            const mesh = new THREE.Mesh(geo, mat);
+            scene.add(mesh);
+            const obj = { mesh, start: startMesh, end: endMesh };
+            links.push(obj);
+            return obj;
+        }
+
+        function updateLinks() {
+            links.forEach(l => {
+                const start = l.start.position;
+                const end = l.end.position;
+                const dir = new THREE.Vector3().subVectors(end, start);
+                const len = dir.length();
+                l.mesh.scale.set(1, len, 1);
+                l.mesh.position.copy(start).add(dir.multiplyScalar(0.5));
+                l.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+            });
+        }
+
+        /**
+         * UI Helpers
+         */
+        function switchMode(mode) {
+            if (isProcessing) return;
+            currentMode = mode;
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${mode}`).classList.add('active');
+            
+            wipeScene();
+            if (mode === 'sort') setupSorting();
+            if (mode === 'list') setupList();
+            if (mode === 'tree') setupTree();
+            if (mode === 'graph') setupGraph();
+            if (mode === 'linear') setupLinear();
+        }
+
+        function updateHUD(val, label) {
+            document.getElementById('hud-val').innerText = val;
+            document.getElementById('hud-label').innerText = label;
+        }
+
+        function updateStatus(text, active = false) {
+            const el = document.getElementById('engine-status');
+            el.innerHTML = `<div class="w-2 h-2 rounded-full ${active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-700'}"></div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">${text}</span>`;
+        }
+
+        function setTerminal(code) {
+            document.getElementById('code-terminal').innerHTML = code;
+        }
+
+        function sleep(ms) {
+            return new Promise(r => setTimeout(r, ms));
+        }
+
+        /**
+         * Modules: Sorting
+         */
+        let sortValues = [];
+        let sortBars = [];
+
+        function setupSorting() {
+            const container = document.getElementById('module-controls');
+            container.innerHTML = `
+                <div class="space-y-1"><h2 class="text-2xl font-black italic">Sort Architect</h2><p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">Dataset Visualizer</p></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div onclick="runSort('bubble')" class="action-card p-4 rounded-3xl glass"><span class="text-[10px] font-black uppercase text-emerald-500">Bubble Sort</span><p class="text-[9px] text-slate-400 mt-1">O(N²) Comparison</p></div>
+                    <div onclick="runSort('quick')" class="action-card p-4 rounded-3xl glass"><span class="text-[10px] font-black uppercase text-emerald-500">Quick Sort</span><p class="text-[9px] text-slate-400 mt-1">O(N log N) Recursive</p></div>
+                    <div onclick="runSort('merge')" class="action-card p-4 rounded-3xl glass"><span class="text-[10px] font-black uppercase text-emerald-500">Merge Sort</span><p class="text-[9px] text-slate-400 mt-1">Stable Conquer</p></div>
+                    <div onclick="runSort('heap')" class="action-card p-4 rounded-3xl glass"><span class="text-[10px] font-black uppercase text-emerald-500">Heap Sort</span><p class="text-[9px] text-slate-400 mt-1">Selection Tree</p></div>
+                </div>
+                <button onclick="regenSort()" class="w-full py-4 bg-emerald-600/10 border border-emerald-500/20 rounded-3xl text-[11px] font-black uppercase tracking-widest text-emerald-500 hover:bg-emerald-600 hover:text-white transition-all">Randomize Dataset</button>
+            `;
+            regenSort();
+            setTerminal(`<span class="code-comment">// Sorting Kernel</span>
+<span class="code-keyword">void</span> <span class="code-func">architectSort</span>(<span class="code-type">int</span> arr[], <span class="code-type">int</span> n) {
+  <span class="code-comment">// Choose an algorithm to begin...</span>
+}`);
+        }
+
+        function regenSort() {
+            wipeScene();
+            sortValues = []; sortBars = [];
+            const size = 16;
+            const width = 2.4;
+            const startX = -((size * width) / 2);
+
+            for (let i = 0; i < size; i++) {
+                const val = Math.random() * 14 + 3;
+                sortValues.push(val);
+                
+                const geo = new THREE.BoxGeometry(1.8, val, 1.8);
+                const mat = new THREE.MeshPhongMaterial({ color: 0x334155 });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(startX + (i * width), val / 2 - 5, 0);
+                scene.add(mesh);
+                nodes.push(mesh);
+                sortBars.push(mesh);
+                
+                mesh.scale.set(0,0,0);
+                new TWEEN.Tween(mesh.scale).to({x:1,y:1,z:1}, 400).delay(i * 30).start();
+            }
+            updateHUD("READY", "Dataset Configured");
+        }
+
+        async function runSort(type) {
+            if (isProcessing) return;
+            isProcessing = true;
+            updateStatus("PROCESSING", true);
+            updateHUD(type.toUpperCase(), "Active Cycle");
+
+            if (type === 'bubble') {
+                setTerminal(`<span class="code-keyword">for</span>(i=0; i&lt;n; i++)
+  <span class="code-keyword">for</span>(j=0; j&lt;n-i-1; j++)
+    <span class="code-keyword">if</span>(arr[j] > arr[j+1])
+      <span class="code-func">swap</span>(j, j+1);`);
+                for (let i = 0; i < sortValues.length; i++) {
+                    for (let j = 0; j < sortValues.length - i - 1; j++) {
+                        sortBars[j].material.color.setHex(CONFIG.COLORS.highlight);
+                        sortBars[j+1].material.color.setHex(CONFIG.COLORS.highlight);
+                        if (sortValues[j] > sortValues[j+1]) {
+                            await swapBars(j, j+1);
+                        } else {
+                            await sleep(globalSpeed / 3);
+                        }
+                        sortBars[j].material.color.setHex(0x334155);
+                    }
+                    sortBars[sortValues.length - 1 - i].material.color.setHex(CONFIG.COLORS.primary);
+                }
+            } else if (type === 'quick') {
+                setTerminal(`<span class="code-func">quickSort</span>(arr, low, high) {
+  <span class="code-keyword">if</span>(low < high) {
+    p = <span class="code-func">partition</span>(arr, low, high);
+    quickSort(arr, low, p-1);
+    quickSort(arr, p+1, high);
+  }
+}`);
+                await quickSort(0, sortValues.length - 1);
+            } else if (type === 'merge') {
+                setTerminal(`<span class="code-func">mergeSort</span>(arr, l, r) {
+  m = l + (r-l)/2;
+  mergeSort(arr, l, m);
+  mergeSort(arr, m+1, r);
+  <span class="code-func">merge</span>(arr, l, m, r);
+}`);
+                await mergeSort(0, sortValues.length - 1);
+            } else if (type === 'heap') {
+                setTerminal(`<span class="code-func">heapSort</span>(arr) {
+  <span class="code-keyword">for</span>(i=n/2; i>=0; i--) heapify(n, i);
+  <span class="code-keyword">for</span>(i=n-1; i>0; i--) {
+    swap(0, i);
+    heapify(i, 0);
+  }
+}`);
+                await heapSort();
+            }
+
+            sortBars.forEach(b => b.material.color.setHex(CONFIG.COLORS.primary));
+            isProcessing = false;
+            updateStatus("READY");
+            updateHUD("DONE", "Sort Complete");
+        }
+
+        async function swapBars(i, j) {
+            const b1 = sortBars[i], b2 = sortBars[j];
+            const p1 = b1.position.x, p2 = b2.position.x;
+            await new Promise(r => {
+                new TWEEN.Tween(b1.position).to({ x: p2 }, globalSpeed).easing(TWEEN.Easing.Quadratic.InOut).start();
+                new TWEEN.Tween(b2.position).to({ x: p1 }, globalSpeed).easing(TWEEN.Easing.Quadratic.InOut).onComplete(r).start();
+            });
+            [sortBars[i], sortBars[j]] = [sortBars[j], sortBars[i]];
+            [sortValues[i], sortValues[j]] = [sortValues[j], sortValues[i]];
+        }
+
+        async function quickSort(l, h) {
+            if (l < h) {
+                let pi = await partition(l, h);
+                await quickSort(l, pi - 1);
+                await quickSort(pi + 1, h);
+            }
+            if (l === 0 && h === sortValues.length - 1) sortBars.forEach(b => b.material.color.setHex(CONFIG.COLORS.primary));
+        }
+
+        async function partition(l, h) {
+            let pivot = sortValues[h];
+            sortBars[h].material.color.setHex(CONFIG.COLORS.danger);
+            let i = l - 1;
+            for (let j = l; j < h; j++) {
+                sortBars[j].material.color.setHex(CONFIG.COLORS.highlight);
+                await sleep(globalSpeed / 4);
+                if (sortValues[j] < pivot) {
+                    i++;
+                    await swapBars(i, j);
+                }
+                sortBars[j].material.color.setHex(0x334155);
+            }
+            await swapBars(i + 1, h);
+            return i + 1;
+        }
+
+        async function mergeSort(l, r) {
+            if (l < r) {
+                let m = Math.floor(l + (r - l) / 2);
+                await mergeSort(l, m);
+                await mergeSort(m + 1, r);
+                await merge(l, m, r);
+            }
+        }
+
+        async function merge(l, m, r) {
+            let n1 = m - l + 1;
+            let n2 = r - m;
+            let L = [], R = [];
+            for (let i = 0; i < n1; i++) L.push({ v: sortValues[l + i], b: sortBars[l + i] });
+            for (let j = 0; j < n2; j++) R.push({ v: sortValues[m + 1 + j], b: sortBars[m + 1 + j] });
+
+            let i = 0, j = 0, k = l;
+            while (i < n1 && j < n2) {
+                if (L[i].v <= R[j].v) {
+                    sortValues[k] = L[i].v; sortBars[k] = L[i].b;
+                    await moveBar(sortBars[k], k); i++;
+                } else {
+                    sortValues[k] = R[j].v; sortBars[k] = R[j].b;
+                    await moveBar(sortBars[k], k); j++;
+                }
+                k++;
+            }
+            while (i < n1) { sortValues[k] = L[i].v; sortBars[k] = L[i].b; await moveBar(sortBars[k], k); i++; k++; }
+            while (j < n2) { sortValues[k] = R[j].v; sortBars[k] = R[j].b; await moveBar(sortBars[k], k); j++; k++; }
+        }
+
+        async function moveBar(bar, idx) {
+            const width = 2.4;
+            const startX = -((sortValues.length * width) / 2);
+            await new Promise(r => {
+                new TWEEN.Tween(bar.position).to({ x: startX + (idx * width) }, globalSpeed / 2).onComplete(r).start();
+            });
+        }
+
+        async function heapSort() {
+            let n = sortValues.length;
+            for (let i = Math.floor(n / 2) - 1; i >= 0; i--) await heapify(n, i);
+            for (let i = n - 1; i > 0; i--) {
+                await swapBars(0, i);
+                await heapify(i, 0);
+            }
+        }
+
+        async function heapify(n, i) {
+            let largest = i, l = 2 * i + 1, r = 2 * i + 2;
+            if (l < n && sortValues[l] > sortValues[largest]) largest = l;
+            if (r < n && sortValues[r] > sortValues[largest]) largest = r;
+            if (largest != i) { await swapBars(i, largest); await heapify(n, largest); }
+        }
+
+        /**
+         * Module: Lists
+         */
+        let listType = 'singly';
+        function setupList() {
+            const container = document.getElementById('module-controls');
+            container.innerHTML = `
+                <div class="space-y-1"><h2 class="text-2xl font-black italic text-white">Linked Lists</h2><p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">Dynamic Allocation</p></div>
+                <div class="flex bg-slate-900/40 p-1.5 rounded-2xl border border-white/5">
+                    <button onclick="changeList('singly')" id="lt-singly" class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider">Singly</button>
+                    <button onclick="changeList('doubly')" id="lt-doubly" class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider">Doubly</button>
+                    <button onclick="changeList('circular')" id="lt-circular" class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider">Circular</button>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <button onclick="listOp('add')" class="py-4 bg-emerald-600 rounded-3xl text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-emerald-900/30">Add Node</button>
+                    <button onclick="listOp('remove')" class="py-4 bg-red-600/10 text-red-500 border border-red-500/20 rounded-3xl text-[11px] font-black uppercase tracking-widest">Remove</button>
+                </div>
+            `;
+            changeList('singly');
+        }
+
+        function changeList(type) {
+            listType = type;
+            document.querySelectorAll('#module-controls button').forEach(b => b.classList.remove('bg-emerald-500', 'text-white'));
+            const btn = document.getElementById(`lt-${type}`);
+            if (btn) btn.classList.add('bg-emerald-500', 'text-white');
+            wipeScene();
+            setTerminal(`<span class="code-keyword">struct</span> <span class="code-type">Node</span> {
+  <span class="code-type">int</span> data;
+  Node* next;
+  ${type !== 'singly' ? 'Node* prev;' : '<span class="code-comment">// Singular link</span>'}
+};`);
+            for (let i = 0; i < 4; i++) listOp('add', false);
+        }
+
+        function listOp(op, anim = true) {
+            if (op === 'add') {
+                if (nodes.length >= 10) return;
+                const idx = nodes.length;
+                const mesh = createNode((idx * 7) - 15, 5, 0, CONFIG.COLORS.secondary);
+                if (idx > 0) createLink(nodes[idx - 1], mesh);
+                if (listType === 'circular' && nodes.length > 1) {
+                    const oldC = links.find(l => l.type === 'circ');
+                    if (oldC) { scene.remove(oldC.mesh); links.splice(links.indexOf(oldC), 1); }
+                    const l = createLink(mesh, nodes[0]);
+                    l.type = 'circ'; l.mesh.material.opacity = 0.15;
+                }
+            } else {
+                if (nodes.length === 0) return;
+                const node = nodes.pop(); scene.remove(node);
+                links = links.filter(l => {
+                    if (l.start === node || l.end === node) { scene.remove(l.mesh); return false; }
+                    return true;
+                });
+                if (listType === 'circular' && nodes.length > 0) {
+                    const l = createLink(nodes[nodes.length - 1], nodes[0]);
+                    l.type = 'circ'; l.mesh.material.opacity = 0.15;
+                }
+            }
+            updateHUD("LIST", nodes.length + " Nodes");
+        }
+
+        /**
+         * Module: Trees
+         */
+        let treeRoot = null;
+        function setupTree() {
+            const container = document.getElementById('module-controls');
+            container.innerHTML = `
+                <div class="space-y-1"><h2 class="text-2xl font-black italic text-white">BST Engine</h2><p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">Binary Search Tree</p></div>
+                <div class="grid grid-cols-1 gap-4">
+                    <button onclick="treeInsert()" class="py-4 bg-emerald-600 rounded-3xl text-[11px] font-black uppercase tracking-widest text-white">Insert Random Node</button>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="treeTraverse('pre')" class="py-2.5 glass rounded-xl text-[9px] font-black uppercase text-slate-400">Pre</button>
+                        <button onclick="treeTraverse('in')" class="py-2.5 glass rounded-xl text-[9px] font-black uppercase text-slate-400">In</button>
+                        <button onclick="treeTraverse('post')" class="py-2.5 glass rounded-xl text-[9px] font-black uppercase text-slate-400">Post</button>
+                    </div>
+                </div>
+            `;
+            wipeScene(); treeRoot = null;
+            setTerminal(`<span class="code-func">insert</span>(node, val) {
+  <span class="code-keyword">if</span>(!node) <span class="code-keyword">return</span> <span class="code-keyword">new</span> Node(val);
+  <span class="code-keyword">if</span>(val < node.v) node.left = insert(node.left, val);
+  <span class="code-keyword">else</span> node.right = insert(node.right, val);
+}`);
+            treeInsert(20);
+        }
+
+        function treeInsert(v = null) {
+            const val = v !== null ? v : Math.floor(Math.random() * 40);
+            if (!treeRoot) {
+                const mesh = createNode(0, 18, 0, CONFIG.COLORS.primary);
+                treeRoot = { val, mesh, l: null, r: null, x: 0, y: 18, depth: 0 };
+                return;
+            }
+            let curr = treeRoot, d = 1;
+            while (d < 5) {
+                const side = val < curr.val ? 'l' : 'r';
+                const dir = side === 'l' ? -1 : 1;
+                if (!curr[side]) {
+                    const spread = 20 / Math.pow(2, d);
+                    const nx = curr.x + (dir * spread), ny = curr.y - 6;
+                    const mesh = createNode(nx, ny, 0, CONFIG.COLORS.secondary);
+                    curr[side] = { val, mesh, l: null, r: null, x: nx, y: ny, depth: d };
+                    createLink(curr.mesh, mesh); break;
+                }
+                curr = curr[side]; d++;
+            }
+            updateHUD("BST", "Height: " + d);
+        }
+
+        async function treeTraverse(type) {
+            if (isProcessing || !treeRoot) return;
+            isProcessing = true; updateStatus("TRAVERSING", true);
+            const sequence = [];
+            const collect = (n) => {
+                if (!n) return;
+                if (type === 'pre') sequence.push(n);
+                collect(n.l);
+                if (type === 'in') sequence.push(n);
+                collect(n.r);
+                if (type === 'post') sequence.push(n);
+            };
+            collect(treeRoot);
+            for (const item of sequence) {
+                item.mesh.material.color.setHex(CONFIG.COLORS.highlight);
+                item.mesh.scale.set(1.5, 1.5, 1.5);
+                await sleep(globalSpeed);
+                item.mesh.material.color.setHex(CONFIG.COLORS.secondary);
+                item.mesh.scale.set(1, 1, 1);
+            }
+            isProcessing = false; updateStatus("READY");
+        }
+
+        /**
+         * Module: Graph
+         */
+        function setupGraph() {
+            const container = document.getElementById('module-controls');
+            container.innerHTML = `
+                <div class="space-y-1"><h2 class="text-2xl font-black italic text-white">Graph Topology</h2><p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">Network Logic</p></div>
+                <div class="grid grid-cols-1 gap-4">
+                    <button onclick="genGraph()" class="py-4 bg-emerald-600 rounded-3xl text-[11px] font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-900/30">Generate Mesh</button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="graphSearch('bfs')" class="py-3 glass rounded-2xl text-[10px] font-black uppercase text-slate-400">BFS Search</button>
+                        <button onclick="graphSearch('dfs')" class="py-3 glass rounded-2xl text-[10px] font-black uppercase text-slate-400">DFS Search</button>
+                    </div>
+                </div>
+            `;
+            genGraph();
+        }
+
+        function genGraph() {
+            wipeScene();
+            setTerminal(`<span class="code-comment">// Adjacency List</span>
+<span class="code-keyword">vector</span>&lt;<span class="code-type">int</span>&gt; adj[MAX];
+<span class="code-keyword">void</span> <span class="code-func">addEdge</span>(<span class="code-type">int</span> u, <span class="code-type">int</span> v) {
+  adj[u].push_back(v);
+  adj[v].push_back(u);
+}`);
+            for (let i = 0; i < 12; i++) {
+                createNode(Math.random() * 30 - 15, Math.random() * 15, Math.random() * 20 - 10, 0xf59e0b);
+            }
+            nodes.forEach((n1, i) => {
+                nodes.forEach((n2, j) => {
+                    if (i < j && Math.random() > 0.85) createLink(n1, n2);
+                });
+            });
+            updateHUD("GRAPH", nodes.length + " Nodes");
+        }
+
+        async function graphSearch(type) {
+            if (isProcessing || nodes.length === 0) return;
+            isProcessing = true; updateStatus("SEARCHING", true);
+            const visited = new Set(), sequence = [];
+            const adj = nodes.map(n => links.filter(l => l.start === n || l.end === n).map(l => l.start === n ? l.end : l.start));
+            
+            if (type === 'bfs') {
+                const q = [nodes[0]]; visited.add(nodes[0]);
+                while (q.length) {
+                    const u = q.shift(); sequence.push(u);
+                    const idx = nodes.indexOf(u);
+                    for (const v of adj[idx]) if (!visited.has(v)) { visited.add(v); q.push(v); }
+                }
+            } else {
+                const dfs = (u) => { visited.add(u); sequence.push(u);
+                    const idx = nodes.indexOf(u);
+                    for (const v of adj[idx]) if (!visited.has(v)) dfs(v);
+                }; dfs(nodes[0]);
+            }
+            for (const n of sequence) {
+                n.material.color.setHex(CONFIG.COLORS.highlight); await sleep(globalSpeed);
+                n.material.color.setHex(0xf59e0b);
+            }
+            isProcessing = false; updateStatus("READY");
+        }
+
+        /**
+         * Module: Linear
+         */
+        let linType = 'stack';
+        function setupLinear() {
+            const container = document.getElementById('module-controls');
+            container.innerHTML = `
+                <div class="space-y-1"><h2 class="text-2xl font-black italic text-white">Linear Containers</h2><p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">Stack & Queue</p></div>
+                <div class="flex bg-slate-900/40 p-1.5 rounded-2xl border border-white/5">
+                    <button onclick="changeLin('stack')" id="ls-stack" class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all">Stack (LIFO)</button>
+                    <button onclick="changeLin('queue')" id="ls-queue" class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all">Queue (FIFO)</button>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mt-2">
+                    <button onclick="linOp('push')" class="py-4 bg-emerald-600 rounded-3xl text-[11px] font-black uppercase tracking-widest text-white shadow-xl">Push/Enq</button>
+                    <button onclick="linOp('pop')" class="py-4 bg-red-600/10 text-red-500 border border-red-500/20 rounded-3xl text-[11px] font-black uppercase tracking-widest">Pop/Deq</button>
+                </div>
+            `;
+            changeLin('stack');
+        }
+
+        function changeLin(type) {
+            linType = type;
+            document.querySelectorAll('#module-controls button').forEach(b => b.classList.remove('bg-emerald-500', 'text-white'));
+            const btn = document.getElementById(`ls-${type}`);
+            if (btn) btn.classList.add('bg-emerald-500', 'text-white');
+            wipeScene();
+            setTerminal(type === 'stack' ? `<span class="code-func">push</span>(val) { top++; stack[top] = val; }` : `<span class="code-func">enqueue</span>(val) { buffer[rear++] = val; }`);
+        }
+
+        function linOp(op) {
+            if (op === 'push') {
+                if (nodes.length >= 10) return;
+                const mesh = createNode(0, 30, 0, CONFIG.COLORS.primary, linType === 'stack');
+                const ty = linType === 'stack' ? nodes.length * 2.2 - 3 : 5;
+                const tx = linType === 'queue' ? nodes.length * 4 - 15 : 0;
+                new TWEEN.Tween(mesh.position).to({ x: tx, y: ty }, 800).easing(TWEEN.Easing.Bounce.Out).start();
+            } else {
+                if (!nodes.length) return;
+                const node = linType === 'stack' ? nodes.pop() : nodes.shift();
+                new TWEEN.Tween(node.position).to({ y: 30, x: linType === 'stack' ? 20 : -30 }, 500).onComplete(() => {
+                    scene.remove(node);
+                    if (linType === 'queue') nodes.forEach((n, i) => new TWEEN.Tween(n.position).to({ x: (i + 1) * 4 - 15 }, 400).start());
+                }).start();
+            }
+        }
+
+        /**
+         * Engine Utils
+         */
+        function resetCamera() {
+            new TWEEN.Tween(camera.position).to({ x: 25, y: 25, z: 50 }, 1000).easing(TWEEN.Easing.Quadratic.InOut).start();
+            new TWEEN.Tween(controls.target).to({ x: 0, y: 0, z: 0 }, 1000).easing(TWEEN.Easing.Quadratic.InOut).start();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function updateStats() {
+            frameCount++;
+            const t = performance.now();
+            if (t >= lastTime + 1000) {
+                document.getElementById('fps-display').innerText = "FPS: " + Math.round((frameCount * 1000) / (t - lastTime));
+                frameCount = 0; lastTime = t;
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update();
+            controls.update();
+            updateLinks();
+            updateStats();
+            renderer.render(scene, camera);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

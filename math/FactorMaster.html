@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factors & Multiples | Visual Master Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #f8fafc; 
+            color: #1e293b; 
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .math-font { font-family: 'Fira Code', monospace; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.05); }
+        .card { background: white; border-radius: 1.5rem; padding: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); transition: all 0.3s ease; }
+        .card:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        
+        .factor-tag { background: #eff6ff; color: #1d4ed8; padding: 6px 14px; border-radius: 999px; font-weight: 600; font-size: 0.875rem; border: 1px solid #dbeafe; transition: transform 0.2s; }
+        .factor-tag:hover { transform: scale(1.1); background: #dbeafe; }
+        
+        .multiple-tag { background: #f0fdf4; color: #15803d; padding: 6px 14px; border-radius: 999px; font-weight: 600; font-size: 0.875rem; border: 1px solid #dcfce7; }
+        
+        .rainbow-arc { fill: none; stroke-width: 3; stroke-linecap: round; opacity: 0.7; transition: stroke-width 0.3s; }
+        .rainbow-arc:hover { stroke-width: 5; opacity: 1; }
+
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="pb-20 selection:bg-indigo-100">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass px-6 py-4 flex justify-between items-center border-b border-slate-100">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-xl text-white">×</div>
+            <h1 class="text-xl font-black tracking-tighter">Factor<span class="text-indigo-600">Master</span></h1>
+        </div>
+        <div class="hidden md:flex space-x-6 text-xs font-bold uppercase tracking-widest text-slate-500">
+            <a href="#basics" class="hover:text-indigo-600 transition">Basics</a>
+            <a href="#primes" class="hover:text-indigo-600 transition">Primes</a>
+            <a href="#gcf-lcm" class="hover:text-indigo-600 transition">GCF & LCM</a>
+        </div>
+        <div class="md:hidden">
+             <button class="p-2 bg-slate-100 rounded-lg">☰</button>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="pt-32 pb-16 px-6 text-center bg-white border-b border-slate-100 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" style="background-image: radial-gradient(#4f46e5 1px, transparent 1px); background-size: 30px 30px;"></div>
+        <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tight text-slate-900 relative z-10">
+            Factors & <span class="text-indigo-600">Multiples</span>
+        </h2>
+        <p class="text-slate-500 text-lg max-w-2xl mx-auto mb-8 relative z-10">
+            Master the relationships that define number theory. Learn to dismantle numbers into factors or build them into infinite multiples.
+        </p>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 mt-12 space-y-16">
+
+        <!-- 1. Factors & Multiples Basics -->
+        <section id="basics" class="scroll-mt-24">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">1</div>
+                <h3 class="text-3xl font-bold text-slate-900">The Fundamentals</h3>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="card space-y-6 bg-indigo-50/30 border-indigo-100">
+                    <div>
+                        <h4 class="text-xl font-bold flex items-center text-indigo-900 mb-2">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            Factors
+                        </h4>
+                        <p class="text-slate-600 leading-relaxed text-sm">
+                            Factors are the whole numbers that divide into another number without leaving a remainder. They are the "multiplication partners" that form a specific product.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold flex items-center text-emerald-900 mb-2">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            Multiples
+                        </h4>
+                        <p class="text-slate-600 leading-relaxed text-sm">
+                            Multiples are the results of multiplying a number by an integer (1, 2, 3...). While factors are limited, multiples are infinite.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Interactive Explorer</label>
+                    <div class="relative mb-8">
+                        <input type="number" id="basic-input" value="12" min="1" max="1000" class="w-full text-5xl font-black bg-slate-50 p-6 rounded-3xl outline-none border-2 border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition">
+                        <span class="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 font-bold uppercase text-xs">Value</span>
+                    </div>
+                    
+                    <div class="space-y-8">
+                        <div>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center">
+                                <span class="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
+                                Factors of <span class="target-num ml-1 text-indigo-600">12</span>
+                            </span>
+                            <div id="factor-list" class="flex flex-wrap gap-2 mt-3 min-h-[40px]">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center">
+                                <span class="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>
+                                First 10 Multiples of <span class="target-num ml-1 text-emerald-600">12</span>
+                            </span>
+                            <div id="multiple-list" class="flex flex-wrap gap-2 mt-3 min-h-[40px]">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Prime vs Composite -->
+        <section id="primes" class="scroll-mt-24">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">2</div>
+                <h3 class="text-3xl font-bold text-slate-900">Prime vs. Composite</h3>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="card bg-slate-900 text-white border-none relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl"></div>
+                    <h4 class="text-2xl font-bold mb-6 relative z-10">Number Classification</h4>
+                    <div class="space-y-6 relative z-10">
+                        <div class="p-5 bg-slate-800/50 rounded-2xl border-l-4 border-indigo-400">
+                            <h5 class="font-bold text-indigo-300 flex items-center">
+                                Prime Numbers
+                                <span class="ml-2 text-[10px] bg-indigo-500/20 px-2 py-0.5 rounded text-indigo-200">2 Factors Only</span>
+                            </h5>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                A prime number has exactly two distinct factors: 1 and itself. It is the "atom" of mathematics.
+                            </p>
+                        </div>
+                        <div class="p-5 bg-slate-800/50 rounded-2xl border-l-4 border-emerald-400">
+                            <h5 class="font-bold text-emerald-300 flex items-center">
+                                Composite Numbers
+                                <span class="ml-2 text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-200">3+ Factors</span>
+                            </h5>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                A composite number has more than two factors. It can be broken down into a product of prime numbers.
+                            </p>
+                        </div>
+                        <div class="pt-4 flex items-center space-x-2 text-slate-500">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                            <span class="text-[10px] italic">1 is neither prime nor composite.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-6">Visual Classification Lab</span>
+                    
+                    <div id="prime-status-badge" class="px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-indigo-100 text-indigo-600 mb-6 shadow-sm">Composite</div>
+                    
+                    <div id="prime-check-val" class="text-8xl font-black text-slate-900 mb-8 leading-none">12</div>
+                    
+                    <div id="factor-rainbow-container" class="w-full h-40 flex justify-center items-end relative mb-6">
+                        <svg id="factor-rainbow" width="360" height="150" viewBox="0 0 360 150">
+                            <!-- JS will inject arcs and text here -->
+                        </svg>
+                    </div>
+                    
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 w-full">
+                        <p id="prime-explanation" class="text-sm text-slate-600 font-medium">12 has 6 factors, making it a composite number.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. GCF & LCM -->
+        <section id="gcf-lcm" class="scroll-mt-24 pb-20">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">3</div>
+                <h3 class="text-3xl font-bold text-slate-900">GCF & LCM Solver</h3>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Input Panel -->
+                <div class="lg:col-span-1 card bg-indigo-600 text-white border-none flex flex-col justify-center space-y-8 shadow-indigo-200">
+                    <h4 class="text-lg font-bold">Compare Numbers</h4>
+                    <div class="space-y-4">
+                        <div class="relative">
+                            <label class="text-[10px] font-black uppercase text-indigo-200 mb-1 block">Number A</label>
+                            <input type="number" id="input-a" value="12" class="w-full text-4xl font-black bg-indigo-700 p-4 rounded-2xl outline-none border-2 border-indigo-500 focus:border-white transition placeholder-indigo-400">
+                        </div>
+                        <div class="relative">
+                            <label class="text-[10px] font-black uppercase text-indigo-200 mb-1 block">Number B</label>
+                            <input type="number" id="input-b" value="18" class="w-full text-4xl font-black bg-indigo-700 p-4 rounded-2xl outline-none border-2 border-indigo-500 focus:border-white transition placeholder-indigo-400">
+                        </div>
+                    </div>
+                    <div class="text-[10px] text-indigo-200 italic leading-relaxed">
+                        GCF finds the biggest common divisor. <br>
+                        LCM finds the smallest common multiple.
+                    </div>
+                </div>
+
+                <!-- GCF Results -->
+                <div class="card border-t-8 border-indigo-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-black text-indigo-600 uppercase text-[10px] tracking-widest">Greatest Common Factor</h4>
+                            <span class="text-[10px] font-bold text-slate-300">GCF</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 leading-relaxed mb-6">The largest integer that divides both numbers exactly.</p>
+                        <div id="gcf-result" class="text-7xl font-black text-slate-900 mb-6">6</div>
+                    </div>
+                    <div class="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                        <span class="text-[10px] font-black text-indigo-400 uppercase block mb-2">Common Factors</span>
+                        <div id="common-factors" class="flex flex-wrap gap-2 text-xs font-bold text-indigo-700">1, 2, 3, 6</div>
+                    </div>
+                </div>
+
+                <!-- LCM Results -->
+                <div class="card border-t-8 border-emerald-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-black text-emerald-600 uppercase text-[10px] tracking-widest">Least Common Multiple</h4>
+                            <span class="text-[10px] font-bold text-slate-300">LCM</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 leading-relaxed mb-6">The smallest integer that is a multiple of both numbers.</p>
+                        <div id="lcm-result" class="text-7xl font-black text-slate-900 mb-6">36</div>
+                    </div>
+                    <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                        <span class="text-[10px] font-black text-emerald-400 uppercase block mb-2">Formula Applied</span>
+                        <div class="math-font text-[10px] text-emerald-800 bg-white p-2 rounded-lg border border-emerald-100">
+                            (12 × 18) ÷ 6 = 36
+                        </div>
+                        <p class="text-[8px] text-emerald-600 mt-2 uppercase font-bold tracking-tighter">Product ÷ GCF = LCM</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="py-12 bg-white border-t border-slate-100 text-center text-slate-400 text-sm">
+        <p>© 2024 FactorMaster Visual Guide • Explore Math Interactively</p>
+    </footer>
+
+    <script>
+        /**
+         * Core Mathematics Engine
+         */
+        const mathEngine = {
+            getFactors: (n) => {
+                const factors = [];
+                const limit = Math.sqrt(n);
+                for (let i = 1; i <= limit; i++) {
+                    if (n % i === 0) {
+                        factors.push(i);
+                        if (i !== n / i) factors.push(n / i);
+                    }
+                }
+                return factors.sort((a, b) => a - b);
+            },
+
+            getGCF: (a, b) => {
+                a = Math.abs(a);
+                b = Math.abs(b);
+                while (b) {
+                    a %= b;
+                    [a, b] = [b, a];
+                }
+                return a;
+            },
+
+            getLCM: (a, b) => {
+                if (a === 0 || b === 0) return 0;
+                return Math.abs(a * b) / mathEngine.getGCF(a, b);
+            }
+        };
+
+        /**
+         * UI Syncing: Basics Section
+         */
+        function syncBasics() {
+            const val = parseInt(document.getElementById('basic-input').value) || 0;
+            const factorList = document.getElementById('factor-list');
+            const multipleList = document.getElementById('multiple-list');
+            const targets = document.querySelectorAll('.target-num');
+            
+            targets.forEach(t => t.innerText = val);
+            
+            // Render Factors
+            factorList.innerHTML = '';
+            mathEngine.getFactors(val).forEach(f => {
+                const span = document.createElement('span');
+                span.className = 'factor-tag';
+                span.innerText = f;
+                factorList.appendChild(span);
+            });
+
+            // Render Multiples
+            multipleList.innerHTML = '';
+            if (val > 0) {
+                for (let i = 1; i <= 10; i++) {
+                    const span = document.createElement('span');
+                    span.className = 'multiple-tag';
+                    span.innerText = val * i;
+                    multipleList.appendChild(span);
+                }
+            } else {
+                multipleList.innerHTML = '<span class="text-xs text-slate-400 italic">Enter a positive number.</span>';
+            }
+
+            syncPrimeChecker(val);
+        }
+
+        /**
+         * UI Syncing: Prime Checker Section (Rainbow)
+         */
+        function syncPrimeChecker(val) {
+            const badge = document.getElementById('prime-status-badge');
+            const explanation = document.getElementById('prime-explanation');
+            const checkVal = document.getElementById('prime-check-val');
+            const svg = document.getElementById('factor-rainbow');
+            
+            checkVal.innerText = val;
+            const factors = mathEngine.getFactors(val);
+            const count = factors.length;
+
+            if (val <= 0) {
+                badge.innerText = "Invalid";
+                badge.className = "px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-slate-100 text-slate-400 mb-6";
+                explanation.innerText = "Please enter a positive integer.";
+                svg.innerHTML = '';
+                return;
+            }
+
+            if (val === 1) {
+                badge.innerText = "Neither";
+                badge.className = "px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-slate-100 text-slate-500 mb-6";
+                explanation.innerText = "1 is unique; it only has one factor.";
+            } else if (count === 2) {
+                badge.innerText = "Prime";
+                badge.className = "px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-indigo-100 text-indigo-600 mb-6 shadow-sm";
+                explanation.innerText = `${val} is prime because its only factors are 1 and ${val}.`;
+            } else {
+                badge.innerText = "Composite";
+                badge.className = "px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-emerald-100 text-emerald-600 mb-6 shadow-sm";
+                explanation.innerText = `${val} is composite with ${count} total factors.`;
+            }
+
+            // Draw the Factor Rainbow
+            svg.innerHTML = '';
+            const padding = 30;
+            const width = 360 - (padding * 2);
+            const gap = factors.length > 1 ? width / (factors.length - 1) : 0;
+
+            // 1. Text Labels
+            factors.forEach((f, i) => {
+                const x = padding + (i * gap);
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", x);
+                text.setAttribute("y", 140);
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("class", "math-font text-[10px] font-bold fill-slate-500");
+                text.textContent = f;
+                svg.appendChild(text);
+            });
+
+            // 2. Arcs for Pairs
+            for (let i = 0; i < Math.floor(factors.length / 2); i++) {
+                const startX = padding + (i * gap);
+                const endX = padding + (factors.length - 1 - i) * gap;
+                const radiusX = (endX - startX) / 2;
+                const radiusY = Math.min(100, radiusX * 0.8);
+                const color = `hsl(${i * 60 + 210}, 80%, 60%)`;
+                
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                const d = `M ${startX} 125 A ${radiusX} ${radiusY} 0 0 1 ${endX} 125`;
+                path.setAttribute("d", d);
+                path.setAttribute("class", "rainbow-arc");
+                path.setAttribute("stroke", color);
+                svg.appendChild(path);
+            }
+            
+            // 3. Middle line for Perfect Squares
+            if (factors.length % 2 !== 0 && factors.length > 1) {
+                const midIdx = Math.floor(factors.length / 2);
+                const x = padding + (midIdx * gap);
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", x);
+                line.setAttribute("y1", 125);
+                line.setAttribute("x2", x);
+                line.setAttribute("y2", 50);
+                line.setAttribute("stroke", "#94a3b8");
+                line.setAttribute("stroke-width", "2");
+                line.setAttribute("stroke-dasharray", "4,2");
+                svg.appendChild(line);
+            }
+        }
+
+        /**
+         * UI Syncing: GCF/LCM Section
+         */
+        function syncGCFLCM() {
+            const a = parseInt(document.getElementById('input-a').value) || 0;
+            const b = parseInt(document.getElementById('input-b').value) || 0;
+            
+            const gcf = mathEngine.getGCF(a, b);
+            const lcm = mathEngine.getLCM(a, b);
+            
+            document.getElementById('gcf-result').innerText = gcf;
+            document.getElementById('lcm-result').innerText = lcm;
+            
+            const factorsA = mathEngine.getFactors(a);
+            const factorsB = mathEngine.getFactors(b);
+            const common = factorsA.filter(f => factorsB.includes(f));
+            
+            const commonContainer = document.getElementById('common-factors');
+            commonContainer.innerHTML = '';
+            if (common.length > 0) {
+                common.forEach(f => {
+                    const tag = document.createElement('span');
+                    tag.innerText = f;
+                    tag.className = "bg-white px-2 py-0.5 rounded shadow-sm border border-indigo-100";
+                    commonContainer.appendChild(tag);
+                });
+            } else {
+                commonContainer.innerText = 'None';
+            }
+        }
+
+        // --- DOM LISTENERS ---
+        document.getElementById('basic-input').addEventListener('input', syncBasics);
+        document.getElementById('input-a').addEventListener('input', syncGCFLCM);
+        document.getElementById('input-b').addEventListener('input', syncGCFLCM);
+
+        // --- BOOTSTRAP ---
+        window.onload = () => {
+            syncBasics();
+            syncGCFLCM();
+        };
+
+        window.addEventListener('resize', () => {
+            syncPrimeChecker(parseInt(document.getElementById('basic-input').value));
+        });
+    </script>
+</body>
+</html>

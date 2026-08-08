@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogicFlow | 3D Multi-Condition Architecture</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #6366f1; --bg: #020617; }
+        body { margin: 0; background-color: var(--bg); color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; }
+        canvas { display: block; position: fixed; top: 0; left: 0; z-index: 0; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .content-overlay { position: relative; max-width: 440px; z-index: 10; padding: 2rem; border-radius: 2.5rem; margin: 8vh 5%; }
+        .logic-card { transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); cursor: pointer; }
+        .logic-card:hover { transform: translateX(10px); background: rgba(255,255,255,0.05); }
+        .code-block { font-family: 'Fira Code', monospace; }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <nav class="fixed top-0 w-full z-50 glass px-10 py-5 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg">IF</div>
+            <h1 class="text-xl font-extrabold tracking-tighter">LOGIC<span class="text-indigo-400">PATH</span></h1>
+        </div>
+        <div id="branch-status" class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">System Idle</div>
+    </nav>
+
+    <main class="relative z-10">
+        <section class="min-h-screen flex items-center">
+            <div class="content-overlay glass shadow-2xl">
+                <header class="mb-6">
+                    <span class="text-indigo-500 font-black text-[10px] uppercase tracking-[0.4em] mb-1 block">Control Structures</span>
+                    <h2 class="text-3xl font-extrabold mb-2 tracking-tight">The Multi-Fork</h2>
+                    <p class="text-slate-400 text-xs leading-relaxed italic">
+                        Nested conditions filter data through multiple gates. Watch how the CPU selects the first matching path.
+                    </p>
+                </header>
+                
+                <div class="space-y-2 mb-6">
+                    <!-- Option 1: IF -->
+                    <div onclick="runSimulation('if')" class="logic-card p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 group">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-emerald-400 font-black text-[9px] uppercase tracking-widest">Branch 1: IF</span>
+                            <span class="text-white font-mono text-[10px]">score > 80</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-white group-hover:text-emerald-400 transition">High Performance</h3>
+                    </div>
+
+                    <!-- Option 2: ELSE IF -->
+                    <div onclick="runSimulation('elseif')" class="logic-card p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 group">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-amber-400 font-black text-[9px] uppercase tracking-widest">Branch 2: ELSE IF</span>
+                            <span class="text-white font-mono text-[10px]">score > 50</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-white group-hover:text-amber-400 transition">Average Performance</h3>
+                    </div>
+
+                    <!-- Option 3: ELSE -->
+                    <div onclick="runSimulation('else')" class="logic-card p-4 rounded-xl border border-red-500/20 bg-red-500/5 group">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-red-400 font-black text-[9px] uppercase tracking-widest">Branch 3: ELSE</span>
+                            <span class="text-white font-mono text-[10px]">Otherwise</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-white group-hover:text-red-400 transition">Action Required</h3>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950/90 p-5 rounded-2xl border border-white/10 code-block text-[11px] shadow-inner leading-relaxed">
+                    <div id="code-line-1" class="transition-opacity duration-300"><span class="text-purple-400">if</span> (score > <span class="text-blue-400">80</span>) {</div>
+                    <div id="code-line-2" class="pl-4 transition-all duration-300 text-slate-500">alert(<span class="text-emerald-400">"Excellent!"</span>);</div>
+                    <div id="code-line-3" class="transition-opacity duration-300">} <span class="text-purple-400">else if</span> (score > <span class="text-blue-400">50</span>) {</div>
+                    <div id="code-line-4" class="pl-4 transition-all duration-300 text-slate-500">alert(<span class="text-amber-400">"Good Job"</span>);</div>
+                    <div id="code-line-5" class="transition-opacity duration-300">} <span class="text-purple-400">else</span> {</div>
+                    <div id="code-line-6" class="pl-4 transition-all duration-300 text-slate-500">alert(<span class="text-red-400">"Keep Trying"</span>);</div>
+                    <div id="code-line-7" class="transition-opacity duration-300">}</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="fixed bottom-10 right-10 text-right pointer-events-none">
+        <div id="exec-indicator" class="text-4xl font-black text-white opacity-10 tracking-tighter uppercase italic">Ready</div>
+        <div class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.5em] mt-2">Logic Architecture v2.5</div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, mainObj, gate, pathA, pathB, pathC;
+        const clock = new THREE.Clock();
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(6, 4, 14);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+            const spotlight = new THREE.SpotLight(0x6366f1, 2);
+            spotlight.position.set(10, 15, 10);
+            scene.add(spotlight);
+
+            // Entry Road
+            const roadGeo = new THREE.PlaneGeometry(2, 30);
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, side: THREE.DoubleSide });
+            const road = new THREE.Mesh(roadGeo, roadMat);
+            road.rotation.x = Math.PI / 2;
+            road.position.z = 15;
+            scene.add(road);
+
+            // Path A: IF (Left)
+            const pathGeo = new THREE.PlaneGeometry(2, 20);
+            pathA = new THREE.Mesh(pathGeo, new THREE.MeshStandardMaterial({ color: 0x10b981, transparent: true, opacity: 0.1 }));
+            pathA.rotation.x = Math.PI / 2;
+            pathA.rotation.z = -Math.PI / 4;
+            pathA.position.set(-6, 0, -8);
+            scene.add(pathA);
+
+            // Path B: ELSE IF (Center)
+            pathB = new THREE.Mesh(pathGeo, new THREE.MeshStandardMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.1 }));
+            pathB.rotation.x = Math.PI / 2;
+            pathB.position.set(0, 0, -10);
+            scene.add(pathB);
+
+            // Path C: ELSE (Right)
+            pathC = new THREE.Mesh(pathGeo, new THREE.MeshStandardMaterial({ color: 0xef4444, transparent: true, opacity: 0.1 }));
+            pathC.rotation.x = Math.PI / 2;
+            pathC.rotation.z = Math.PI / 4;
+            pathC.position.set(6, 0, -8);
+            scene.add(pathC);
+
+            // Logic Gate
+            const ringGeo = new THREE.TorusGeometry(2, 0.08, 16, 100);
+            const ringMat = new THREE.MeshStandardMaterial({ color: 0x6366f1, emissive: 0x6366f1 });
+            gate = new THREE.Mesh(ringGeo, ringMat);
+            gate.position.set(0, 1, 0);
+            scene.add(gate);
+
+            // Grid
+            const grid = new THREE.GridHelper(100, 50, 0x1e293b, 0x0f172a);
+            grid.position.y = -0.1;
+            scene.add(grid);
+
+            resetPacket();
+            animate();
+        }
+
+        function resetPacket() {
+            if (mainObj) scene.remove(mainObj);
+            const geo = new THREE.IcosahedronGeometry(0.7, 0);
+            const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.8, roughness: 0.2 });
+            mainObj = new THREE.Mesh(geo, mat);
+            mainObj.position.set(0, 1, 20);
+            scene.add(mainObj);
+        }
+
+        function runSimulation(type) {
+            resetPacket();
+            
+            const status = document.getElementById('branch-status');
+            const execIndicator = document.getElementById('exec-indicator');
+            const lines = {
+                if: document.getElementById('code-line-2'),
+                elseif: document.getElementById('code-line-4'),
+                else: document.getElementById('code-line-6')
+            };
+
+            // Reset UI
+            Object.values(lines).forEach(el => el.className = "pl-4 transition-all duration-300 text-slate-500");
+            
+            let color, targetX, targetZ, label;
+            if (type === 'if') {
+                color = 0x10b981; targetX = -10; targetZ = -15; label = "IF Match";
+            } else if (type === 'elseif') {
+                color = 0xf59e0b; targetX = 0; targetZ = -20; label = "ELSE IF Match";
+            } else {
+                color = 0xef4444; targetX = 10; targetZ = -15; label = "ELSE Match";
+            }
+
+            status.innerText = `Branching: ${label}`;
+            status.className = `text-[10px] font-black uppercase tracking-[0.4em] ${type==='if'?'text-emerald-400':type==='elseif'?'text-amber-400':'text-red-400'}`;
+            execIndicator.innerText = type.toUpperCase();
+            execIndicator.className = `text-4xl font-black tracking-tighter uppercase italic opacity-40 ${type==='if'?'text-emerald-400':type==='elseif'?'text-amber-400':'text-red-400'}`;
+
+            // Phase 1: Travel to Gate
+            new TWEEN.Tween(mainObj.position)
+                .to({ z: 0 }, 800)
+                .easing(TWEEN.Easing.Quadratic.In)
+                .onComplete(() => {
+                    gate.material.emissive.setHex(color);
+                    lines[type].className = `pl-4 bg-white/5 ${type==='if'?'text-emerald-400':type==='elseif'?'text-amber-400':'text-red-400'} font-bold scale-105 rounded`;
+
+                    // Phase 2: Fork
+                    new TWEEN.Tween(mainObj.position)
+                        .to({ x: targetX, z: targetZ }, 1200)
+                        .easing(TWEEN.Easing.Quadratic.Out)
+                        .start();
+
+                    new TWEEN.Tween(mainObj.material.color)
+                        .to(new THREE.Color(color), 400)
+                        .start();
+
+                    // Flash path
+                    const path = type === 'if' ? pathA : type === 'elseif' ? pathB : pathC;
+                    path.material.opacity = 0.8;
+                    setTimeout(() => {
+                        path.material.opacity = 0.1;
+                        gate.material.emissive.setHex(0x6366f1);
+                    }, 1800);
+                })
+                .start();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update();
+            const elapsed = clock.getElapsedTime();
+
+            if (mainObj) {
+                mainObj.rotation.y += 0.03;
+                mainObj.position.y = 1 + Math.sin(elapsed * 5) * 0.15;
+            }
+
+            gate.rotation.z += 0.01;
+            gate.scale.setScalar(1 + Math.sin(elapsed * 2) * 0.04);
+            camera.position.x = 6 + Math.sin(elapsed * 0.3) * 0.5;
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        init();
+    </script>
+</body>
+</html>

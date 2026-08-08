@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering Conditions | 3D Visual Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            margin: 0; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        canvas { display: block; }
+        .math-font { font-family: 'Fira Code', monospace; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        
+        .content-overlay { 
+            position: fixed; 
+            top: 50%; 
+            left: 5%; 
+            transform: translateY(-50%); 
+            max-width: 420px; 
+            z-index: 10;
+        }
+        
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .logic-btn {
+            transition: all 0.2s ease;
+        }
+        .logic-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .code-highlight {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="selection:bg-blue-500/30">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass px-8 py-4 flex justify-between items-center border-b border-white/5">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-indigo-500/30">?</div>
+            <h1 class="text-xl font-black tracking-tighter text-white">Logic<span class="text-indigo-500">Flow</span></h1>
+        </div>
+        <div class="hidden md:flex space-x-8 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <span>3D Condition Simulation</span>
+        </div>
+    </nav>
+
+    <!-- UI Overlay -->
+    <div class="content-overlay glass p-8 rounded-[2.5rem]">
+        <span class="text-indigo-400 font-bold text-xs uppercase tracking-widest mb-2 block">Control Flow</span>
+        <h2 class="text-4xl font-black mb-4 leading-tight">If / Else Logic</h2>
+        <p class="text-slate-400 text-sm leading-relaxed mb-8">
+            Conditions allow your code to make decisions. Think of them as forks in a physical path. If a condition is <span class="text-emerald-400 font-bold">True</span>, the data takes one path; if <span class="text-red-400 font-bold">False</span>, it takes another.
+        </p>
+        
+        <div class="space-y-4 mb-8">
+            <div class="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-2">Test the Logic</div>
+            
+            <button onclick="simulateLogic('true')" class="logic-btn w-full p-4 bg-emerald-500/10 text-emerald-400 text-left rounded-2xl border border-emerald-500/20 flex justify-between items-center group">
+                <div>
+                    <div class="font-bold text-sm">Condition: True</div>
+                    <div class="text-[10px] opacity-60">Passes the "If" check</div>
+                </div>
+                <div class="math-font text-xs uppercase font-bold tracking-tighter">Path A</div>
+            </button>
+            
+            <button onclick="simulateLogic('false')" class="logic-btn w-full p-4 bg-red-500/10 text-red-400 text-left rounded-2xl border border-red-500/20 flex justify-between items-center group">
+                <div>
+                    <div class="font-bold text-sm">Condition: False</div>
+                    <div class="text-[10px] opacity-60">Triggers the "Else" block</div>
+                </div>
+                <div class="math-font text-xs uppercase font-bold tracking-tighter">Path B</div>
+            </button>
+        </div>
+
+        <div class="p-4 bg-slate-950/80 rounded-2xl border border-white/5">
+            <div class="flex items-center space-x-2 mb-3">
+                <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+                <div class="w-2 h-2 rounded-full bg-green-500"></div>
+            </div>
+            <div id="code-display" class="math-font text-sm leading-relaxed">
+                <span class="text-purple-400">if</span> (isTrue) {<br>
+                &nbsp;&nbsp;<span class="text-slate-500">// Result: Path A</span><br>
+                } <span class="text-purple-400">else</span> {<br>
+                &nbsp;&nbsp;<span class="text-slate-500">// Result: Path B</span><br>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Ticker -->
+    <div class="fixed bottom-8 right-8 z-10 text-right">
+        <div class="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">Execution Status</div>
+        <div id="status-text" class="text-xl font-mono text-indigo-400">WAITING FOR INPUT...</div>
+    </div>
+
+    <div class="fixed bottom-8 left-8 z-50 text-[10px] uppercase tracking-widest font-bold text-slate-500">
+        Drag: Orbit | Scroll: Zoom | Click Buttons to Branch
+    </div>
+
+    <script>
+        let scene, camera, renderer, clock;
+        let mainPath, forkA, forkB, dataPacket;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 15);
+            camera.lookAt(0, 0, 0);
+            
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            clock = new THREE.Clock();
+
+            // Environment
+            scene.add(new THREE.AmbientLight(0x404040, 3));
+            const pointLight = new THREE.PointLight(0x6366f1, 5, 100);
+            pointLight.position.set(5, 5, 10);
+            scene.add(pointLight);
+
+            // Grid
+            const grid = new THREE.GridHelper(100, 50, 0x1e293b, 0x0f172a);
+            grid.position.y = -2;
+            scene.add(grid);
+
+            // Create Fork Paths
+            const pathMat = new THREE.MeshPhongMaterial({ color: 0x1e293b, transparent: true, opacity: 0.6 });
+            
+            // Main Entrance Path
+            const mainGeo = new THREE.BoxGeometry(2, 0.2, 10);
+            mainPath = new THREE.Mesh(mainGeo, pathMat);
+            mainPath.position.set(0, -1.9, 5);
+            scene.add(mainPath);
+
+            // Path A (True - Emerald)
+            const pathAGeo = new THREE.BoxGeometry(2, 0.2, 10);
+            forkA = new THREE.Mesh(pathAGeo, new THREE.MeshPhongMaterial({ color: 0x059669, transparent: true, opacity: 0.2 }));
+            forkA.position.set(-4, -1.9, -4);
+            forkA.rotation.y = Math.PI / 6;
+            scene.add(forkA);
+
+            // Path B (False - Red)
+            const pathBGeo = new THREE.BoxGeometry(2, 0.2, 10);
+            forkB = new THREE.Mesh(pathBGeo, new THREE.MeshPhongMaterial({ color: 0xdc2626, transparent: true, opacity: 0.2 }));
+            forkB.position.set(4, -1.9, -4);
+            forkB.rotation.y = -Math.PI / 6;
+            scene.add(forkB);
+
+            // Central Decision Gate
+            const gateGeo = new THREE.TorusGeometry(2, 0.1, 16, 100);
+            const gateMat = new THREE.MeshBasicMaterial({ color: 0x6366f1 });
+            const gate = new THREE.Mesh(gateGeo, gateMat);
+            gate.position.set(0, 0, 0);
+            scene.add(gate);
+
+            animate();
+        }
+
+        function simulateLogic(outcome) {
+            if(dataPacket) scene.remove(dataPacket);
+
+            // Reset UI
+            const codeBox = document.getElementById('code-display');
+            const statusText = document.getElementById('status-text');
+            
+            // Create Packet
+            const packetColor = outcome === 'true' ? 0x10b981 : 0xef4444;
+            const packetGeo = new THREE.IcosahedronGeometry(0.6, 0);
+            const packetMat = new THREE.MeshPhongMaterial({ 
+                color: packetColor, 
+                emissive: packetColor,
+                emissiveIntensity: 0.5 
+            });
+            dataPacket = new THREE.Mesh(packetGeo, packetMat);
+            dataPacket.position.set(0, 0, 10);
+            scene.add(dataPacket);
+
+            // Highlight Paths
+            forkA.material.opacity = outcome === 'true' ? 0.8 : 0.1;
+            forkB.material.opacity = outcome === 'false' ? 0.8 : 0.1;
+
+            // Update Code UI
+            if(outcome === 'true') {
+                codeBox.innerHTML = `<span class="text-emerald-400 font-bold">if (true) {</span><br>
+                                   &nbsp;&nbsp;<span class="text-white font-bold">pathA.execute();</span><br>
+                                   <span class="text-slate-500">} else { ... }</span>`;
+                statusText.innerText = "EXECUTING PATH A...";
+                statusText.className = "text-xl font-mono text-emerald-400";
+            } else {
+                codeBox.innerHTML = `<span class="text-slate-500">if (false) { ... }</span><br>
+                                   <span class="text-red-400 font-bold">else {</span><br>
+                                   &nbsp;&nbsp;<span class="text-white font-bold">pathB.execute();</span><br>
+                                   <span class="text-red-400 font-bold">}</span>`;
+                statusText.innerText = "EXECUTING PATH B...";
+                statusText.className = "text-xl font-mono text-red-400";
+            }
+
+            // Animation logic for packet
+            const targetX = outcome === 'true' ? -4 : 4;
+            const startT = Date.now();
+            
+            function movePacket() {
+                const elapsed = (Date.now() - startT) / 1000;
+                if(elapsed > 2) {
+                    scene.remove(dataPacket);
+                    statusText.innerText = "READY FOR INPUT...";
+                    statusText.className = "text-xl font-mono text-indigo-400";
+                    return;
+                }
+
+                // Move from Z=10 to Z=-10
+                dataPacket.position.z = 10 - (elapsed * 10);
+                
+                // Curve towards target X after passing origin (Z=0)
+                if(dataPacket.position.z < 0) {
+                    dataPacket.position.x += (targetX - dataPacket.position.x) * 0.1;
+                }
+                
+                dataPacket.rotation.y += 0.1;
+                requestAnimationFrame(movePacket);
+            }
+            movePacket();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            if(dataPacket) {
+                dataPacket.position.y = Math.sin(time * 5) * 0.1;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Orbit Interaction
+        let isDragging = false;
+        window.addEventListener('mousedown', () => isDragging = true);
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', (e) => {
+            if(isDragging) {
+                scene.rotation.y += e.movementX * 0.002;
+                scene.rotation.x += e.movementY * 0.002;
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>

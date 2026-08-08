@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programming in 3D | The Visual Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            margin: 0; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        canvas { display: block; }
+        .math-font { font-family: 'Fira Code', monospace; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        
+        .section-container { height: 100vh; position: relative; pointer-events: none; }
+        .content-overlay { 
+            position: absolute; 
+            top: 50%; 
+            left: 10%; 
+            transform: translateY(-50%); 
+            max-width: 400px; 
+            pointer-events: auto;
+            z-index: 10;
+        }
+        
+        .control-panel {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 100;
+            pointer-events: auto;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .step-active { color: #3b82f6; border-left: 2px solid #3b82f6; padding-left: 10px; }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass px-8 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-blue-500/30">3D</div>
+            <h1 class="text-xl font-black tracking-tighter">Code<span class="text-blue-500">Viz</span></h1>
+        </div>
+        <div class="hidden md:flex space-x-8 text-xs font-bold uppercase tracking-widest text-slate-400">
+            <span>Scroll to Explore</span>
+        </div>
+    </nav>
+
+    <!-- UI Overlay for Sections -->
+    <main class="relative z-10">
+        
+        <!-- Section 1: Introduction -->
+        <section class="section-container" id="intro">
+            <div class="content-overlay glass p-8 rounded-[2.5rem]">
+                <span class="text-blue-500 font-bold text-xs uppercase tracking-widest mb-2 block">Step 01</span>
+                <h2 class="text-4xl font-black mb-4 leading-tight">What is Programming?</h2>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Programming is the art of giving precise instructions to a machine. Think of it as a 3D path where every block must be laid perfectly for the data to travel.
+                </p>
+                <div class="math-font text-xs p-4 bg-slate-950/50 rounded-xl border border-white/5">
+                    console.log("Hello, World!");
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Variables -->
+        <section class="section-container" id="variables">
+            <div class="content-overlay glass p-8 rounded-[2.5rem]">
+                <span class="text-blue-500 font-bold text-xs uppercase tracking-widest mb-2 block">Step 02</span>
+                <h2 class="text-4xl font-black mb-4 leading-tight">Memory Slots</h2>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Variables are named containers. In 3D space, imagine them as specific coordinate slots that hold different shapes (data types).
+                </p>
+                <div class="space-y-4">
+                    <button onclick="updateVariable('string')" class="w-full py-2 bg-pink-500/20 text-pink-400 text-xs font-bold rounded-lg border border-pink-500/30">Store "Text"</button>
+                    <button onclick="updateVariable('number')" class="w-full py-2 bg-blue-500/20 text-blue-400 text-xs font-bold rounded-lg border border-blue-500/30">Store 123</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Logic / Conditionals -->
+        <section class="section-container" id="logic">
+            <div class="content-overlay glass p-8 rounded-[2.5rem]">
+                <span class="text-blue-500 font-bold text-xs uppercase tracking-widest mb-2 block">Step 03</span>
+                <h2 class="text-4xl font-black mb-4 leading-tight">Decision Gates</h2>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    If/Else statements are the "forks in the road." Depending on a condition, the data packet travels down Path A or Path B.
+                </p>
+                <div class="flex gap-2">
+                    <button onclick="runLogic(true)" class="flex-1 py-3 bg-emerald-600 rounded-xl font-bold text-xs">If (True)</button>
+                    <button onclick="runLogic(false)" class="flex-1 py-3 bg-red-600 rounded-xl font-bold text-xs">Else (False)</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Loops -->
+        <section class="section-container" id="loops">
+            <div class="content-overlay glass p-8 rounded-[2.5rem]">
+                <span class="text-blue-500 font-bold text-xs uppercase tracking-widest mb-2 block">Step 04</span>
+                <h2 class="text-4xl font-black mb-4 leading-tight">Infinite Loops</h2>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Loops tell the computer to repeat a 3D pattern multiple times. This is how we build complex structures with simple rules.
+                </p>
+                <div class="flex items-center justify-between p-4 bg-slate-950 rounded-xl">
+                    <span class="text-xs">Repeat Count</span>
+                    <input type="range" id="loop-range" min="1" max="10" value="5" oninput="updateLoop()" class="w-24">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Instructions -->
+    <div class="fixed bottom-8 left-8 z-50 text-[10px] uppercase tracking-widest font-bold text-slate-500">
+        Left Click: Rotate Scene | Scroll: Change Concept
+    </div>
+
+    <script>
+        // --- THREE.JS SETUP ---
+        let scene, camera, renderer, clock;
+        let variableObj, logicNode, loopGroup, dataPacket;
+        let scrollY = 0;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 15);
+            
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            clock = new THREE.Clock();
+
+            // Lights
+            const ambient = new THREE.AmbientLight(0x404040, 2);
+            scene.add(ambient);
+            const mainLight = new THREE.PointLight(0x3b82f6, 2, 100);
+            mainLight.position.set(10, 10, 10);
+            scene.add(mainLight);
+
+            // 1. Grid Helper
+            const grid = new THREE.GridHelper(100, 50, 0x1e293b, 0x0f172a);
+            grid.rotation.x = Math.PI / 2;
+            grid.position.z = -5;
+            scene.add(grid);
+
+            // 2. Variable Model (The "Box")
+            const varGeo = new THREE.IcosahedronGeometry(2, 0);
+            const varMat = new THREE.MeshPhongMaterial({ color: 0x3b82f6, wireframe: true });
+            variableObj = new THREE.Mesh(varGeo, varMat);
+            variableObj.position.set(15, 0, 0); // Positioned for section 2
+            scene.add(variableObj);
+
+            // 3. Logic Path
+            logicNode = new THREE.Group();
+            const gateGeo = new THREE.BoxGeometry(1, 4, 1);
+            const gateMat = new THREE.MeshPhongMaterial({ color: 0x1e293b });
+            const gate = new THREE.Mesh(gateGeo, gateMat);
+            logicNode.add(gate);
+            logicNode.position.set(45, 0, 0); // Section 3
+            scene.add(logicNode);
+
+            // 4. Loop Spiral
+            loopGroup = new THREE.Group();
+            for(let i=0; i<10; i++) {
+                const ringGeo = new THREE.TorusGeometry(3 + i*0.5, 0.05, 16, 100);
+                const ringMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.2 });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                loopGroup.add(ring);
+            }
+            loopGroup.position.set(75, 0, 0); // Section 4
+            scene.add(loopGroup);
+
+            animate();
+        }
+
+        // --- INTERACTIVE ACTIONS ---
+
+        function updateVariable(type) {
+            if(type === 'string') {
+                variableObj.geometry = new THREE.BoxGeometry(3, 3, 3);
+                variableObj.material.color.setHex(0xec4899);
+            } else {
+                variableObj.geometry = new THREE.SphereGeometry(2, 32, 32);
+                variableObj.material.color.setHex(0x3b82f6);
+            }
+            // Pulse effect
+            variableObj.scale.set(1.5, 1.5, 1.5);
+            setTimeout(() => variableObj.scale.set(1,1,1), 200);
+        }
+
+        function runLogic(condition) {
+            if(dataPacket) scene.remove(dataPacket);
+            
+            const geo = new THREE.SphereGeometry(0.4, 16, 16);
+            const mat = new THREE.MeshBasicMaterial({ color: condition ? 0x10b981 : 0xef4444 });
+            dataPacket = new THREE.Mesh(geo, mat);
+            dataPacket.position.set(42, 0, 0);
+            scene.add(dataPacket);
+
+            const targetY = condition ? 3 : -3;
+            let startT = Date.now();
+            
+            function animatePacket() {
+                let elapsed = (Date.now() - startT) / 1000;
+                if(elapsed > 1) {
+                    scene.remove(dataPacket);
+                    return;
+                }
+                dataPacket.position.x += 0.15;
+                dataPacket.position.y += (targetY - dataPacket.position.y) * 0.1;
+                requestAnimationFrame(animatePacket);
+            }
+            animatePacket();
+        }
+
+        function updateLoop() {
+            const count = document.getElementById('loop-range').value;
+            loopGroup.children.forEach((child, i) => {
+                child.visible = i < count;
+                child.material.opacity = (i + 1) / 10;
+            });
+        }
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            // Handle Camera Movement based on Scroll
+            const targetX = (window.scrollY / window.innerHeight) * 30;
+            camera.position.x += (targetX - camera.position.x) * 0.05;
+
+            // Animate Objects
+            variableObj.rotation.y += 0.01;
+            variableObj.rotation.z += 0.005;
+            
+            logicNode.rotation.y = Math.sin(time) * 0.2;
+            
+            loopGroup.rotation.z += 0.01;
+            loopGroup.children.forEach((ring, i) => {
+                ring.rotation.x = Math.sin(time + i) * 0.5;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // --- UTILS ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Mouse Interactivity for rotation
+        let isDragging = false;
+        window.addEventListener('mousedown', () => isDragging = true);
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', (e) => {
+            if(isDragging) {
+                scene.rotation.y += e.movementX * 0.002;
+                scene.rotation.x += e.movementY * 0.002;
+            }
+        });
+
+        init();
+        updateLoop();
+    </script>
+</body>
+</html>

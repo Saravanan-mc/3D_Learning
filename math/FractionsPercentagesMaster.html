@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fractions & Percentages Master</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-glow:hover {
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.08);
+            border-color: rgba(79, 70, 229, 0.3);
+        }
+
+        .fraction-line {
+            border-top: 2px solid currentColor;
+            width: 100%;
+            margin: 2px 0;
+        }
+    </style>
+</head>
+<body class="text-slate-900 min-h-screen selection:bg-indigo-100">
+
+    <!-- HUD Header -->
+    <nav class="border-b border-slate-200 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-200">
+                    <i data-lucide="calculator" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold tracking-tight text-xl block leading-none">MATH<span class="text-indigo-600">MASTER</span></span>
+                    <span class="text-[10px] text-slate-400 font-mono tracking-widest uppercase">Fractions & Percentages</span>
+                </div>
+            </div>
+
+            <div class="hidden md:flex items-center gap-10 text-sm font-bold">
+                <button onclick="setActiveTab('map')" id="nav-map" class="nav-btn flex items-center gap-2 transition-all text-indigo-600 scale-105">
+                    <i data-lucide="map" class="w-4 h-4"></i> CONCEPT MAP
+                </button>
+                <button onclick="setActiveTab('lab')" id="nav-lab" class="nav-btn flex items-center gap-2 transition-all text-slate-400 hover:text-indigo-600">
+                    <i data-lucide="flask-conical" class="w-4 h-4"></i> CALC LAB
+                </button>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="text-right">
+                    <div id="hud-level" class="text-[10px] text-slate-400 font-mono font-bold uppercase">LEVEL 1</div>
+                    <div class="flex items-center gap-3">
+                        <div class="h-2 w-32 bg-slate-100 rounded-full overflow-hidden">
+                            <div id="xp-bar" class="h-full bg-indigo-600 transition-all duration-700 ease-out" style="width: 0%"></div>
+                        </div>
+                        <span id="hud-xp" class="font-mono text-xs text-indigo-600 font-bold">0 XP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-12">
+        
+        <!-- CONCEPT MAP TAB -->
+        <section id="tab-map" class="space-y-12">
+            <header class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div class="space-y-2">
+                    <h1 class="text-5xl font-extrabold tracking-tighter bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-500 bg-clip-text text-transparent">Master the Ratio.</h1>
+                    <p class="text-slate-500 max-w-lg text-lg font-medium leading-relaxed">Bridge the gap between parts and wholes. Complete quests to unlock advanced mathematical tiers.</p>
+                </div>
+                <div class="flex gap-4">
+                    <div class="bg-white border border-slate-200 px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm">
+                        <i data-lucide="award" class="w-4 h-4 text-yellow-500"></i>
+                        <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Top Tier: Novice</span>
+                    </div>
+                </div>
+            </header>
+
+            <div id="topic-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Topics injected by JS -->
+            </div>
+        </section>
+
+        <!-- CALC LAB TAB -->
+        <section id="tab-lab" class="hidden grid lg:grid-cols-12 gap-8 fade-in">
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm">
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="p-2.5 bg-indigo-50 rounded-xl">
+                            <i data-lucide="brain-circuit" class="w-5 h-5 text-indigo-600"></i>
+                        </div>
+                        <h2 class="text-xl font-bold">Mental Math Lab</h2>
+                    </div>
+                    <div class="space-y-8">
+                        <div class="relative pl-6 border-l-2 border-indigo-200">
+                            <div class="font-bold text-slate-800 mb-1 flex items-center gap-2">
+                                <i data-lucide="zap" class="w-4 h-4 text-yellow-500"></i> Speed Rule
+                            </div>
+                            <p class="text-xs text-slate-500 leading-relaxed">To find 10% of any number, simply move the decimal point one place to the left.</p>
+                        </div>
+                        <div class="relative pl-6 border-l-2 border-emerald-200">
+                            <div class="font-bold text-slate-800 mb-1 flex items-center gap-2">
+                                <i data-lucide="percent" class="w-4 h-4 text-emerald-600"></i> Conversion Hack
+                            </div>
+                            <p class="text-xs text-slate-500 leading-relaxed">A percentage is just a fraction with a denominator of 100. 25% is always 25/100 or 1/4.</p>
+                        </div>
+                        <div class="relative pl-6 border-l-2 border-amber-200">
+                            <div class="font-bold text-slate-800 mb-1 flex items-center gap-2">
+                                <i data-lucide="divide" class="w-4 h-4 text-amber-600"></i> Division Focus
+                            </div>
+                            <p class="text-xs text-slate-500 leading-relaxed">Simplifying fractions makes calculation much easier. Always look for the Greatest Common Divisor (GCD).</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-indigo-500 to-indigo-700 p-8 rounded-3xl relative overflow-hidden group shadow-xl shadow-indigo-100">
+                    <i data-lucide="pie-chart" class="absolute -right-6 -bottom-6 w-32 h-32 opacity-10 rotate-12 group-hover:scale-110 transition-transform duration-500"></i>
+                    <h3 class="text-xl font-bold mb-2 text-white">Practice Blitz</h3>
+                    <p class="text-sm text-indigo-50/80 mb-8">Test your skills with randomized mental math challenges.</p>
+                    <button onclick="startPractice()" class="w-full bg-white text-indigo-600 py-4 rounded-2xl font-black text-sm hover:shadow-lg transition-all active:scale-95 uppercase tracking-widest">
+                        Initialize Training
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8">
+                <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden flex flex-col h-[650px] shadow-sm">
+                    <div class="p-5 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                        <div class="flex gap-2.5">
+                            <div class="w-3 h-3 rounded-full bg-rose-200"></div>
+                            <div class="w-3 h-3 rounded-full bg-amber-200"></div>
+                            <div class="w-3 h-3 rounded-full bg-emerald-200"></div>
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em] font-bold">Calculation Matrix v2.0</span>
+                        <div class="w-12"></div>
+                    </div>
+                    
+                    <div id="console-output" class="flex-1 p-8 font-mono text-sm overflow-auto space-y-3 bg-slate-50/50 custom-scrollbar">
+                        <!-- Console lines injected by JS -->
+                        <div class="text-slate-400">> System Ready. Awaiting user input...</div>
+                        <div class="w-2 h-4 bg-indigo-600 inline-block animate-pulse"></div>
+                    </div>
+
+                    <div id="practice-input-area" class="hidden p-6 bg-white border-t border-slate-200 flex gap-4">
+                        <input type="text" id="practice-input" placeholder="Enter result..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 font-mono text-indigo-600 focus:outline-none focus:border-indigo-400 transition-colors">
+                        <button onclick="checkPracticeAnswer()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md shadow-indigo-100">SUBMIT</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Overlay -->
+    <div id="modal-overlay" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
+        <div class="bg-white border border-slate-100 w-full max-w-5xl rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+            <button onclick="closeModal()" class="absolute top-6 right-8 text-slate-400 hover:text-slate-900 text-3xl z-10 transition-colors">&times;</button>
+            <div class="grid md:grid-cols-2">
+                <!-- Knowledge Section -->
+                <div class="p-10 border-r border-slate-100 bg-slate-50/30">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div id="modal-icon-container" class="p-3 bg-white border border-slate-100 shadow-sm rounded-2xl"></div>
+                        <h2 id="modal-title" class="text-3xl font-black tracking-tight text-slate-900"></h2>
+                    </div>
+                    <div id="modal-content" class="text-slate-600 leading-relaxed mb-10 text-lg"></div>
+                    
+                    <div class="bg-slate-50 rounded-3xl p-6 border border-slate-200/50 font-mono text-sm relative group overflow-hidden">
+                        <div class="absolute top-0 right-0 p-2 text-[10px] text-slate-300 uppercase font-bold">Visual Proof</div>
+                        <div id="modal-visual" class="flex justify-center items-center py-4">
+                            <!-- Visual injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Challenge Section -->
+                <div id="modal-quiz-pane" class="p-10 bg-white flex flex-col justify-center">
+                    <!-- Dynamic Quiz Content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const topics = [
+            {
+                id: 'basics',
+                title: 'Fraction Anatomy',
+                icon: 'divide',
+                color: 'text-indigo-600',
+                description: 'Understanding Numerators and Denominators.',
+                content: "A fraction represents a part of a whole. The top number (Numerator) tells us how many parts we have. The bottom number (Denominator) tells us how many equal parts the whole is divided into.",
+                visual: `<div class="flex items-center gap-4 text-2xl font-bold">
+                            <div class="flex flex-col items-center">
+                                <span class="text-indigo-600">3</span>
+                                <div class="fraction-line text-slate-300"></div>
+                                <span class="text-slate-500">4</span>
+                            </div>
+                            <span class="text-slate-300">=</span>
+                            <div class="w-20 h-20 rounded-full border-4 border-slate-100 relative overflow-hidden">
+                                <div class="absolute inset-0 bg-indigo-500" style="clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 50%)"></div>
+                            </div>
+                         </div>`,
+                challenge: {
+                    question: "In the fraction 5/8, which number is the Denominator?",
+                    options: ["5", "8", "The line", "13"],
+                    correct: 1
+                },
+                xp: 100
+            },
+            {
+                id: 'simplify',
+                title: 'Simplification',
+                icon: 'scissors',
+                color: 'text-emerald-600',
+                description: 'Reducing fractions to their lowest terms.',
+                content: "Simplifying means finding an equivalent fraction that uses smaller numbers. This is done by dividing both the top and bottom by their Greatest Common Divisor (GCD).",
+                visual: `<div class="flex items-center gap-4 text-xl font-bold">
+                            <div class="flex flex-col items-center"><span>4</span><div class="fraction-line"></div><span>8</span></div>
+                            <span class="text-slate-300">÷ 4 →</span>
+                            <div class="flex flex-col items-center text-emerald-600"><span>1</span><div class="fraction-line"></div><span>2</span></div>
+                         </div>`,
+                challenge: {
+                    question: "What is 6/9 simplified to its lowest terms?",
+                    options: ["1/3", "2/3", "3/2", "6/9"],
+                    correct: 1
+                },
+                xp: 150
+            },
+            {
+                id: 'perc-intro',
+                title: 'Percentage Power',
+                icon: 'percent',
+                color: 'text-rose-600',
+                description: 'Percentages as parts of 100.',
+                content: "Percent literally means 'per hundred'. When you see 50%, it just means 50 out of every 100 parts, or exactly half.",
+                visual: `<div class="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-10 gap-1 w-40">
+                            ${Array(100).fill(0).map((_, i) => `<div class="w-2 h-2 rounded-sm ${i < 40 ? 'bg-rose-500' : 'bg-slate-200'}"></div>`).join('')}
+                         </div>
+                         <div class="ml-4 font-bold text-rose-600">40%</div>`,
+                challenge: {
+                    question: "If a cake is cut into 100 pieces and you eat 25, what percentage did you eat?",
+                    options: ["10%", "25%", "50%", "75%"],
+                    correct: 1
+                },
+                xp: 150
+            },
+            {
+                id: 'bridge',
+                title: 'The Bridge',
+                icon: 'shuffle',
+                color: 'text-amber-600',
+                description: 'Converting Fractions to Percentages.',
+                content: "To convert a fraction to a percentage, divide the numerator by the denominator and multiply by 100. Or, if the denominator is a factor of 100, scale it up!",
+                visual: `<div class="flex items-center gap-4 text-xl font-bold text-amber-600">
+                            <div class="flex flex-col items-center"><span>1</span><div class="fraction-line"></div><span>5</span></div>
+                            <span class="text-slate-300">× 20 →</span>
+                            <div class="flex flex-col items-center"><span>20</span><div class="fraction-line"></div><span>100</span></div>
+                            <span class="text-slate-300">=</span>
+                            <span>20%</span>
+                         </div>`,
+                challenge: {
+                    question: "What is 3/4 expressed as a percentage?",
+                    options: ["30%", "40%", "75%", "34%"],
+                    correct: 2
+                },
+                xp: 200
+            },
+            {
+                id: 'add-sub',
+                title: 'Adding Parts',
+                icon: 'plus',
+                color: 'text-blue-600',
+                description: 'Adding fractions with same denominators.',
+                content: "When denominators are the same, you simply add or subtract the numerators and keep the denominator the same. It's like adding slices of the same pizza.",
+                visual: `<div class="flex items-center gap-4 text-xl font-bold">
+                            <div class="flex flex-col items-center"><span>1</span><div class="fraction-line"></div><span>4</span></div>
+                            <span>+</span>
+                            <div class="flex flex-col items-center"><span>2</span><div class="fraction-line"></div><span>4</span></div>
+                            <span class="text-slate-300">=</span>
+                            <div class="flex flex-col items-center text-blue-600"><span>3</span><div class="fraction-line"></div><span>4</span></div>
+                         </div>`,
+                challenge: {
+                    question: "What is 2/7 + 3/7?",
+                    options: ["5/14", "5/7", "6/7", "1/7"],
+                    correct: 1
+                },
+                xp: 200
+            },
+            {
+                id: 'discount',
+                title: 'Shopping Math',
+                icon: 'shopping-cart',
+                color: 'text-violet-600',
+                description: 'Calculating discounts in the real world.',
+                content: "To find a discount, multiply the original price by the percentage (as a decimal). Subtract that from the total to find your deal!",
+                visual: `<div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                            <div class="flex justify-between text-xs font-mono"><span>Item:</span><span>$50.00</span></div>
+                            <div class="flex justify-between text-xs font-mono text-rose-500"><span>-20%:</span><span>$10.00</span></div>
+                            <div class="border-t border-slate-200 pt-2 flex justify-between font-bold text-violet-600"><span>TOTAL:</span><span>$40.00</span></div>
+                         </div>`,
+                challenge: {
+                    question: "How much is a 10% tip on a $60 bill?",
+                    options: ["$1", "$6", "$10", "$12"],
+                    correct: 1
+                },
+                xp: 250
+            }
+        ];
+
+        let state = {
+            activeTab: 'map',
+            xp: 0,
+            level: 1,
+            completedTopics: [],
+            arenaConsole: ['> Knowledge Base Initialized...', '> Math Engine: Operational.'],
+            selectedTopicId: null,
+            quizActive: false,
+            practiceMode: false,
+            currentQuestion: null
+        };
+
+        function init() {
+            renderMap();
+            updateHUD();
+            renderConsole();
+            lucide.createIcons();
+            
+            document.getElementById('practice-input').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') checkPracticeAnswer();
+            });
+        }
+
+        function updateHUD() {
+            const xpForNext = state.level * 400;
+            const currentLevelXp = state.xp % xpForNext;
+            const progress = (currentLevelXp / xpForNext) * 100;
+            
+            document.getElementById('hud-xp').textContent = `${state.xp} XP`;
+            document.getElementById('hud-level').textContent = `LEVEL ${state.level}`;
+            document.getElementById('xp-bar').style.width = `${progress}%`;
+
+            if (state.xp >= state.level * 400) {
+                state.level++;
+                logToConsole(`> [SYSTEM] LEVEL UP! You have reached Level ${state.level}.`);
+                updateHUD();
+            }
+        }
+
+        function setActiveTab(tab) {
+            state.activeTab = tab;
+            document.getElementById('tab-map').classList.toggle('hidden', tab !== 'map');
+            document.getElementById('tab-lab').classList.toggle('hidden', tab !== 'lab');
+            
+            const navMap = document.getElementById('nav-map');
+            const navLab = document.getElementById('nav-lab');
+            
+            if(tab === 'map') {
+                navMap.className = "nav-btn flex items-center gap-2 transition-all text-indigo-600 scale-105";
+                navLab.className = "nav-btn flex items-center gap-2 transition-all text-slate-400 hover:text-indigo-600";
+            } else {
+                navLab.className = "nav-btn flex items-center gap-2 transition-all text-indigo-600 scale-105";
+                navMap.className = "nav-btn flex items-center gap-2 transition-all text-slate-400 hover:text-indigo-600";
+            }
+        }
+
+        function renderMap() {
+            const grid = document.getElementById('topic-grid');
+            grid.innerHTML = '';
+            topics.forEach(topic => {
+                const isCompleted = state.completedTopics.includes(topic.id);
+                const card = document.createElement('div');
+                card.className = `relative bg-white border ${isCompleted ? 'border-indigo-400' : 'border-slate-100'} p-8 rounded-[2rem] hover:border-indigo-500 transition-all cursor-pointer group overflow-hidden fade-in card-glow shadow-sm`;
+                card.onclick = () => openModal(topic.id);
+                
+                card.innerHTML = `
+                    ${isCompleted ? '<div class="absolute top-4 right-4 text-indigo-600"><i data-lucide="shield-check" class="w-6 h-6"></i></div>' : ''}
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="p-4 rounded-2xl group-hover:scale-110 transition-transform ${isCompleted ? 'bg-indigo-50' : 'bg-slate-50'}">
+                            <i data-lucide="${topic.icon}" class="w-6 h-6 ${topic.color}"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-900 mb-3 tracking-tight">${topic.title}</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-6">${topic.description}</p>
+                    <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <i data-lucide="zap" class="w-3 h-3 text-indigo-600"></i>
+                        <span>${topic.xp} XP Available</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function openModal(topicId) {
+            const topic = topics.find(t => t.id === topicId);
+            state.selectedTopicId = topicId;
+            state.quizActive = false;
+
+            document.getElementById('modal-title').textContent = topic.title;
+            document.getElementById('modal-content').textContent = topic.content;
+            document.getElementById('modal-visual').innerHTML = topic.visual;
+            document.getElementById('modal-icon-container').innerHTML = `<i data-lucide="${topic.icon}" class="w-7 h-7 ${topic.color}"></i>`;
+            
+            renderQuizPane();
+            
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.add('hidden');
+            state.selectedTopicId = null;
+        }
+
+        function renderQuizPane() {
+            const pane = document.getElementById('modal-quiz-pane');
+            const topic = topics.find(t => t.id === state.selectedTopicId);
+            
+            if (!state.quizActive) {
+                pane.innerHTML = `
+                    <div class="h-full flex flex-col justify-center items-center text-center space-y-8 p-6">
+                        <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center animate-pulse">
+                            <i data-lucide="target" class="w-10 h-10 text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-black mb-2 text-slate-900">Challenge Sequence</h3>
+                            <p class="text-slate-500">Verify your mastery to claim your reward.</p>
+                        </div>
+                        <button onclick="startQuiz()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-5 rounded-[1.5rem] font-black text-sm transition-all active:scale-95 uppercase tracking-widest shadow-lg shadow-indigo-100">
+                            Engage Challenge
+                        </button>
+                    </div>
+                `;
+            } else {
+                pane.innerHTML = `
+                    <div class="h-full flex flex-col">
+                        <div class="mb-8">
+                           <span class="text-xs text-indigo-600 font-mono mb-2 block uppercase tracking-[0.3em] font-bold">Phase 01</span>
+                           <h3 class="text-xl font-bold text-slate-900 leading-tight">${topic.challenge.question}</h3>
+                        </div>
+                        <div class="space-y-4 flex-1">
+                            ${topic.challenge.options.map((opt, idx) => `
+                                <button onclick="handleAnswer(${idx})" class="w-full text-left p-5 rounded-2xl border-2 border-slate-50 transition-all bg-slate-50/50 hover:border-indigo-600 hover:bg-white text-slate-600 font-bold group">
+                                    <span class="inline-block w-8 text-indigo-600 font-mono">${String.fromCharCode(65 + idx)}.</span> ${opt}
+                                </button>
+                            `).join('')}
+                        </div>
+                        <div id="quiz-feedback" class="mt-6 h-8 text-center"></div>
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+        }
+
+        function startQuiz() {
+            state.quizActive = true;
+            renderQuizPane();
+        }
+
+        function handleAnswer(index) {
+            const topic = topics.find(t => t.id === state.selectedTopicId);
+            const feedbackEl = document.getElementById('quiz-feedback');
+            
+            if (index === topic.challenge.correct) {
+                feedbackEl.innerHTML = `<div class="flex items-center justify-center gap-2 text-emerald-600 font-bold animate-in zoom-in"><i data-lucide="check-circle" class="w-5 h-5"></i> VALIDATED. +${topic.xp} XP</div>`;
+                if (!state.completedTopics.includes(topic.id)) {
+                    state.xp += topic.xp;
+                    state.completedTopics.push(topic.id);
+                }
+                updateHUD();
+                renderMap();
+                logToConsole(`> [ACHIEVEMENT] Completed: ${topic.title}`);
+                setTimeout(closeModal, 1500);
+            } else {
+                feedbackEl.innerHTML = `<div class="flex items-center justify-center gap-2 text-rose-500 font-bold animate-bounce"><i data-lucide="alert-triangle" class="w-5 h-5"></i> LOGIC ERROR. RECALCULATING...</div>`;
+            }
+            lucide.createIcons();
+        }
+
+        function logToConsole(msg) {
+            state.arenaConsole.push(msg);
+            if(state.arenaConsole.length > 50) state.arenaConsole.shift();
+            renderConsole();
+        }
+
+        function renderConsole() {
+            const output = document.getElementById('console-output');
+            const cursor = '<div class="w-2 h-4 bg-indigo-600 inline-block align-middle animate-pulse ml-1"></div>';
+            
+            output.innerHTML = state.arenaConsole.map(line => {
+                let colorClass = 'text-slate-500';
+                if (line.includes('[ACHIEVEMENT]')) colorClass = 'text-amber-600 font-bold';
+                if (line.includes('[SYSTEM]')) colorClass = 'text-indigo-600 font-bold';
+                if (line.includes('CORRECT')) colorClass = 'text-emerald-600 font-bold';
+                if (line.includes('INCORRECT')) colorClass = 'text-rose-600 font-bold';
+                return `<div class="${colorClass}">${line}</div>`;
+            }).join('') + cursor;
+            
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function startPractice() {
+            state.practiceMode = true;
+            document.getElementById('practice-input-area').classList.remove('hidden');
+            generatePracticeQuestion();
+            logToConsole(`> [SYSTEM] Calculation Lab: Active Mode.`);
+            document.getElementById('practice-input').focus();
+        }
+
+        function generatePracticeQuestion() {
+            const types = ['fraction_to_perc', 'perc_of_num', 'simplify'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            let q, a;
+            
+            if (type === 'fraction_to_perc') {
+                const denoms = [2, 4, 5, 10, 20, 25, 50];
+                const d = denoms[Math.floor(Math.random() * denoms.length)];
+                const n = Math.floor(Math.random() * (d - 1)) + 1;
+                q = `Convert ${n}/${d} to a percentage (exclude % sign)`;
+                a = (n / d) * 100;
+            } else if (type === 'perc_of_num') {
+                const perc = [10, 20, 25, 50, 75];
+                const p = perc[Math.floor(Math.random() * perc.length)];
+                const val = (Math.floor(Math.random() * 10) + 1) * 20;
+                q = `What is ${p}% of ${val}?`;
+                a = (p / 100) * val;
+            } else {
+                const n = 12, d = 18;
+                q = `Simplify 12/18 (Format: n/d)`;
+                a = "2/3";
+            }
+
+            state.currentQuestion = { q, a };
+            logToConsole(`> QUESTION: ${q}`);
+        }
+
+        function checkPracticeAnswer() {
+            const input = document.getElementById('practice-input');
+            const val = input.value.trim();
+            if (!val) return;
+
+            if (val.toString() === state.currentQuestion.a.toString()) {
+                logToConsole(`> CORRECT. +25 XP Gain.`);
+                state.xp += 25;
+                updateHUD();
+                input.value = '';
+                generatePracticeQuestion();
+            } else {
+                logToConsole(`> INCORRECT. Expected: ${state.currentQuestion.a}`);
+                input.value = '';
+                generatePracticeQuestion();
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

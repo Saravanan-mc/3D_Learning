@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arithmetic Mastery | Visual Math Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+        }
+        body { 
+            background-color: #ffffff; 
+            color: #1e293b; 
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.05); }
+        .math-font { font-family: 'Fira Code', monospace; }
+        #three-canvas-container { cursor: move; border-radius: 2rem; overflow: hidden; }
+        
+        .op-card { transition: all 0.3s ease; border: 1px solid #f1f5f9; }
+        .op-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); border-color: var(--primary); }
+        
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="selection:bg-blue-100">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xl text-white">A</div>
+            <h1 class="text-xl font-black tracking-tighter text-slate-900">Arithmetic<span class="text-blue-600">Master</span></h1>
+        </div>
+        <div class="hidden md:flex space-x-8 text-xs font-bold uppercase tracking-widest text-slate-500">
+            <a href="#playground-3d" class="hover:text-blue-600 transition">3D Playground</a>
+            <a href="#basic-ops" class="hover:text-blue-600 transition">Operations</a>
+            <a href="#pemdas" class="hover:text-blue-600 transition">PEMDAS</a>
+            <a href="#properties" class="hover:text-blue-600 transition">Properties</a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="min-h-screen flex flex-col items-center justify-center text-center px-6 bg-slate-50 relative">
+        <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#2563eb 1px, transparent 1px); background-size: 40px 40px;"></div>
+        <div class="z-10 max-w-4xl">
+            <span class="inline-block px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mb-6 tracking-widest uppercase">The Science of Calculation</span>
+            <h2 class="text-6xl md:text-8xl font-black mb-8 leading-tight tracking-tighter text-slate-900">
+                Math in <br><span class="bg-gradient-to-r from-blue-600 to-emerald-500 bg-clip-text text-transparent">Three Dimensions</span>
+            </h2>
+            <p class="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+                Explore Addition, Multiplication, and the laws of Arithmetic through immersive visual tools.
+            </p>
+            <div class="flex gap-4 justify-center">
+                <button onclick="scrollToSection('playground-3d')" class="px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:scale-105 transition shadow-xl shadow-blue-500/20">Enter 3D Space</button>
+                <button onclick="scrollToSection('basic-ops')" class="px-8 py-4 bg-white text-slate-700 border border-slate-200 font-bold rounded-2xl hover:bg-slate-50 transition">Visual Solver</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Section 1: 3D Arithmetic Playground -->
+    <section id="playground-3d" class="py-24 px-6 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="lg:w-1/3">
+                    <h3 class="text-4xl font-black mb-6">3D Visual Addition</h3>
+                    <p class="text-slate-600 mb-8 leading-relaxed">
+                        In 3D space, addition is the physical accumulation of volume. Watch how blocks combine to form a sum.
+                    </p>
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm">Value A</span>
+                            <input type="range" id="three-val-a" min="1" max="10" value="3" class="w-2/3">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm">Value B</span>
+                            <input type="range" id="three-val-b" min="1" max="10" value="4" class="w-2/3">
+                        </div>
+                    </div>
+                    <div class="mt-10 p-6 bg-blue-50 rounded-2xl border border-blue-100">
+                        <div class="text-center font-black text-3xl text-blue-700 math-font" id="three-formula">
+                            3 + 4 = 7
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:w-2/3 w-full h-[600px] bg-slate-50 shadow-inner" id="three-canvas-container">
+                    <!-- Three.js renders here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Basic Operations Visualizer -->
+    <section id="basic-ops" class="py-24 px-6 bg-slate-50/50">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h3 class="text-4xl font-black mb-4">Operations Engine</h3>
+                <p class="text-slate-600">Visualizing Multiplication as a Grid and Division as Equal Sharing.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Inputs -->
+                <div class="lg:col-span-1 space-y-4">
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Number X</label>
+                                <input type="number" id="vis-a" value="6" class="w-full text-4xl font-black bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20">
+                            </div>
+                            <div class="flex justify-between items-center bg-slate-50 p-2 rounded-2xl">
+                                <button onclick="setOp('add')" id="btn-add" class="w-12 h-12 flex items-center justify-center rounded-xl bg-white shadow-sm font-bold hover:bg-blue-600 hover:text-white transition">+</button>
+                                <button onclick="setOp('sub')" id="btn-sub" class="w-12 h-12 flex items-center justify-center rounded-xl bg-white shadow-sm font-bold hover:bg-blue-600 hover:text-white transition">-</button>
+                                <button onclick="setOp('mul')" id="btn-mul" class="w-12 h-12 flex items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm font-bold transition">×</button>
+                                <button onclick="setOp('div')" id="btn-div" class="w-12 h-12 flex items-center justify-center rounded-xl bg-white shadow-sm font-bold hover:bg-blue-600 hover:text-white transition">÷</button>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Number Y</label>
+                                <input type="number" id="vis-b" value="4" class="w-full text-4xl font-black bg-slate-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualizer -->
+                <div class="lg:col-span-2 bg-white p-10 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center justify-center min-h-[400px]">
+                    <div id="grid-container" class="grid gap-2 mb-8">
+                        <!-- JS generated dots -->
+                    </div>
+                    <div class="text-center">
+                        <span id="op-label" class="text-xs font-bold text-slate-400 uppercase tracking-widest">Multiplication Array</span>
+                        <div id="vis-result" class="text-5xl font-black text-blue-600 mt-2 math-font">24</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: PEMDAS Logic Stepper -->
+    <section id="pemdas" class="py-24 px-6 bg-white">
+        <div class="max-w-4xl mx-auto text-center">
+            <h3 class="text-4xl font-black mb-12">The Order of Operations</h3>
+            <div class="grid grid-cols-6 gap-2 mb-10">
+                <div class="bg-blue-50 p-4 rounded-2xl border-2 border-blue-200">
+                    <span class="text-2xl font-black text-blue-600 block">P</span>
+                    <span class="text-[8px] uppercase font-bold text-blue-400">Parentheses</span>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border-2 border-slate-100">
+                    <span class="text-2xl font-black text-slate-700 block">E</span>
+                    <span class="text-[8px] uppercase font-bold text-slate-400">Exponents</span>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-2xl border-2 border-blue-200">
+                    <span class="text-2xl font-black text-blue-600 block">M</span>
+                    <span class="text-[8px] uppercase font-bold text-blue-400">Multiply</span>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-2xl border-2 border-blue-200">
+                    <span class="text-2xl font-black text-blue-600 block">D</span>
+                    <span class="text-[8px] uppercase font-bold text-blue-400">Divide</span>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border-2 border-slate-100">
+                    <span class="text-2xl font-black text-slate-700 block">A</span>
+                    <span class="text-[8px] uppercase font-bold text-slate-400">Add</span>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border-2 border-slate-100">
+                    <span class="text-2xl font-black text-slate-700 block">S</span>
+                    <span class="text-[8px] uppercase font-bold text-slate-400">Subtract</span>
+                </div>
+            </div>
+
+            <div class="glass p-12 rounded-[3rem] shadow-xl bg-white border border-slate-100">
+                <div class="text-3xl font-mono text-blue-600 mb-8 p-6 bg-slate-900 rounded-3xl shadow-inner" id="pemdas-expr">
+                    8 + 2 × (5 - 3)
+                </div>
+                <div id="pemdas-steps" class="space-y-4 mb-8 text-left max-h-60 overflow-y-auto pr-4">
+                    <!-- Steps go here -->
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="nextPemdas()" class="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/20">Calculate Next Step</button>
+                    <button onclick="resetPemdas()" class="px-8 py-4 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-200 transition">Reset</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Properties of Operations -->
+    <section id="properties" class="py-24 px-6 bg-slate-50/50 pb-40">
+        <div class="max-w-7xl mx-auto">
+            <h3 class="text-4xl font-black text-center mb-16">Fundamental Properties</h3>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="op-card glass p-8 rounded-[2rem] bg-white">
+                    <h4 class="text-xl font-bold mb-4 text-blue-600">Commutative</h4>
+                    <p class="text-sm text-slate-500 mb-6">Order doesn't matter. The result is the same regardless of position.</p>
+                    <div class="bg-slate-50 p-4 rounded-xl font-mono text-center mb-4">5 + 3 = 3 + 5</div>
+                    <div class="flex justify-center space-x-2">
+                        <div class="w-4 h-4 rounded-full bg-blue-500"></div>
+                        <div class="w-4 h-4 rounded-full bg-blue-500"></div>
+                        <span class="font-bold">+</span>
+                        <div class="w-4 h-4 rounded-full bg-emerald-500"></div>
+                    </div>
+                </div>
+
+                <div class="op-card glass p-8 rounded-[2rem] bg-white">
+                    <h4 class="text-xl font-bold mb-4 text-emerald-600">Associative</h4>
+                    <p class="text-sm text-slate-500 mb-6">Grouping doesn't matter. Parentheses position won't change the sum.</p>
+                    <div class="bg-slate-50 p-4 rounded-xl font-mono text-center mb-4">(2+3)+4 = 2+(3+4)</div>
+                </div>
+
+                <div class="op-card glass p-8 rounded-[2rem] bg-white">
+                    <h4 class="text-xl font-bold mb-4 text-amber-600">Distributive</h4>
+                    <p class="text-sm text-slate-500 mb-6">Multiplication spreads across addition inside parentheses.</p>
+                    <div class="bg-slate-50 p-4 rounded-xl font-mono text-center mb-4">2×(3+4) = 2×3 + 2×4</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-12 bg-white border-t border-slate-100 text-center text-slate-400 text-sm">
+        <p>© 2024 Arithmetic Mastery Guide • A Visual Journey Through Operations</p>
+    </footer>
+
+    <script>
+        // --- SCROLL UTILS ---
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- 3D ENGINE (THREE.JS) ---
+        let scene, camera, renderer, groupA, groupB;
+        const container = document.getElementById('three-canvas-container');
+
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf8fafc);
+
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(8, 8, 12);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(5, 10, 5);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+            groupA = new THREE.Group();
+            groupB = new THREE.Group();
+            scene.add(groupA);
+            scene.add(groupB);
+
+            update3D();
+            animate3D();
+        }
+
+        function createCube(x, y, z, color) {
+            const geo = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+            const mat = new THREE.MeshPhongMaterial({ color: color, shininess: 100 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(x, y, z);
+            return mesh;
+        }
+
+        function update3D() {
+            const valA = parseInt(document.getElementById('three-val-a').value);
+            const valB = parseInt(document.getElementById('three-val-b').value);
+            
+            // Clear previous
+            while(groupA.children.length > 0) groupA.remove(groupA.children[0]);
+            while(groupB.children.length > 0) groupB.remove(groupB.children[0]);
+
+            // Group A (Blue)
+            for(let i=0; i<valA; i++) {
+                groupA.add(createCube(i % 3, Math.floor(i / 3), 0, 0x2563eb));
+            }
+            groupA.position.x = -4;
+
+            // Group B (Emerald)
+            for(let i=0; i<valB; i++) {
+                groupB.add(createCube(i % 3, Math.floor(i / 3), 0, 0x10b981));
+            }
+            groupB.position.x = 1;
+
+            document.getElementById('three-formula').innerText = `${valA} + ${valB} = ${valA + valB}`;
+        }
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            groupA.rotation.y += 0.005;
+            groupB.rotation.y += 0.005;
+            renderer.render(scene, camera);
+        }
+
+        document.getElementById('three-val-a').addEventListener('input', update3D);
+        document.getElementById('three-val-b').addEventListener('input', update3D);
+
+        // --- VISUAL GRID ENGINE ---
+        let currentOp = 'mul';
+
+        function setOp(op) {
+            currentOp = op;
+            ['add', 'sub', 'mul', 'div'].forEach(o => {
+                const btn = document.getElementById('btn-' + o);
+                if (o === op) {
+                    btn.classList.add('bg-blue-600', 'text-white');
+                    btn.classList.remove('bg-white', 'text-slate-900');
+                } else {
+                    btn.classList.remove('bg-blue-600', 'text-white');
+                    btn.classList.add('bg-white', 'text-slate-900');
+                }
+            });
+            updateVis();
+        }
+
+        function updateVis() {
+            const a = parseInt(document.getElementById('vis-a').value) || 0;
+            const b = parseInt(document.getElementById('vis-b').value) || 0;
+            const container = document.getElementById('grid-container');
+            const label = document.getElementById('op-label');
+            const result = document.getElementById('vis-result');
+            
+            container.innerHTML = '';
+            let res = 0;
+
+            if (currentOp === 'mul') {
+                label.innerText = "Multiplication Array";
+                res = a * b;
+                container.style.gridTemplateColumns = `repeat(${b}, minmax(0, 1fr))`;
+                for(let i=0; i<Math.min(res, 200); i++) {
+                    const dot = document.createElement('div');
+                    dot.className = "w-4 h-4 rounded bg-blue-500 animate-pulse";
+                    container.appendChild(dot);
+                }
+            } else if (currentOp === 'div') {
+                label.innerText = "Division Distribution";
+                res = b !== 0 ? (a / b).toFixed(1) : "∞";
+                container.style.gridTemplateColumns = `repeat(${b}, minmax(0, 1fr))`;
+                for(let i=0; i<Math.min(a, 200); i++) {
+                    const dot = document.createElement('div');
+                    dot.className = "w-4 h-4 rounded bg-emerald-500";
+                    container.appendChild(dot);
+                }
+            } else if (currentOp === 'add') {
+                label.innerText = "Addition Combination";
+                res = a + b;
+                container.style.gridTemplateColumns = `repeat(10, minmax(0, 1fr))`;
+                for(let i=0; i<Math.min(a, 100); i++) container.appendChild(dotEl('bg-blue-500'));
+                for(let i=0; i<Math.min(b, 100); i++) container.appendChild(dotEl('bg-emerald-500'));
+            } else if (currentOp === 'sub') {
+                label.innerText = "Subtraction Removal";
+                res = a - b;
+                container.style.gridTemplateColumns = `repeat(10, minmax(0, 1fr))`;
+                for(let i=0; i<Math.min(a, 100); i++) {
+                    const d = dotEl(i >= (a-b) && b > 0 ? 'bg-slate-200' : 'bg-blue-500');
+                    container.appendChild(d);
+                }
+            }
+            
+            result.innerText = res;
+        }
+
+        function dotEl(cls) {
+            const d = document.createElement('div');
+            d.className = `w-4 h-4 rounded ${cls}`;
+            return d;
+        }
+
+        document.getElementById('vis-a').addEventListener('input', updateVis);
+        document.getElementById('vis-b').addEventListener('input', updateVis);
+
+        // --- PEMDAS STEPPER ---
+        const pemdasFullSteps = [
+            { expr: "8 + 2 × (2)", note: "Step 1: Parentheses (5 - 3) = 2" },
+            { expr: "8 + 4", note: "Step 2: Multiply 2 × 2 = 4" },
+            { expr: "12", note: "Step 3: Add 8 + 4 = 12. Done!" }
+        ];
+        let pemdasStepIdx = 0;
+
+        function nextPemdas() {
+            if (pemdasStepIdx >= pemdasFullSteps.length) return;
+            const step = pemdasFullSteps[pemdasStepIdx];
+            document.getElementById('pemdas-expr').innerText = step.expr;
+            
+            const div = document.createElement('div');
+            div.className = "p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-xl text-sm font-medium animate-bounce";
+            div.innerText = step.note;
+            document.getElementById('pemdas-steps').appendChild(div);
+            
+            pemdasStepIdx++;
+        }
+
+        function resetPemdas() {
+            pemdasStepIdx = 0;
+            document.getElementById('pemdas-expr').innerText = "8 + 2 × (5 - 3)";
+            document.getElementById('pemdas-steps').innerHTML = '';
+        }
+
+        // --- INIT ---
+        window.onload = () => {
+            init3D();
+            updateVis();
+            
+            // Mouse drag logic for 3D
+            let isDragging = false;
+            container.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+            container.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    scene.rotation.y += e.movementX * 0.01;
+                    scene.rotation.x += e.movementY * 0.01;
+                }
+            });
+        };
+
+        window.addEventListener('resize', () => {
+            if(renderer) {
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+            }
+        });
+    </script>
+</body>
+</html>

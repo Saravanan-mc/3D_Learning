@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OOP Lab 3D | Ultimate Visual Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #8b5cf6; --bg: #020617; }
+        body { margin: 0; background-color: var(--bg); color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; }
+        canvas { display: block; position: fixed; top: 0; left: 0; z-index: 0; }
+        .glass { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .ui-panel { position: fixed; top: 50%; left: 3rem; transform: translateY(-50%); width: 420px; z-index: 100; border-radius: 2.5rem; }
+        .oop-card { cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.03); }
+        .oop-card:hover { background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.4); transform: translateX(8px); }
+        .active { background: rgba(139, 92, 246, 0.2) !important; border-color: var(--accent) !important; box-shadow: 0 0 40px rgba(139, 92, 246, 0.15); }
+        .math-font { font-family: 'Fira Code', monospace; }
+        #code-terminal { scrollbar-width: none; font-size: 11px; }
+        .code-keyword { color: #c084fc; } .code-func { color: #38bdf8; } .code-str { color: #fbbf24; }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas-bg"></canvas>
+
+    <nav class="fixed top-0 w-full z-[1000] glass px-10 py-5 flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+            <div class="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-purple-500/30">C++</div>
+            <div>
+                <h1 class="text-lg font-black tracking-tight leading-none">OOP<span class="text-purple-500">LAB</span>.3D</h1>
+                <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Object Oriented Architecture</span>
+            </div>
+        </div>
+        <button onclick="handleReset()" class="px-6 py-2 glass hover:bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest transition">Clear Scene</button>
+    </nav>
+
+    <div class="ui-panel glass p-10 shadow-2xl">
+        <header class="mb-8">
+            <span class="text-purple-500 font-bold text-[10px] uppercase tracking-widest mb-2 block">Foundational Pillars</span>
+            <h2 class="text-3xl font-extrabold tracking-tighter mb-3 leading-tight">Interactive <br>Blueprints</h2>
+            <p class="text-slate-400 text-xs leading-relaxed">Select a principle to visualize how object structures behave in virtual space.</p>
+        </header>
+
+        <div class="grid grid-cols-2 gap-3 mb-8">
+            <div onclick="visualizeOOP('encapsulation')" class="oop-card p-5 rounded-2xl glass active" id="card-encapsulation">
+                <h4 class="font-bold text-[11px] uppercase tracking-tight">Encapsulation</h4>
+                <p class="text-[9px] text-slate-500 mt-1">Data Hiding</p>
+            </div>
+            <div onclick="visualizeOOP('inheritance')" class="oop-card p-5 rounded-2xl glass" id="card-inheritance">
+                <h4 class="font-bold text-[11px] uppercase tracking-tight">Inheritance</h4>
+                <p class="text-[9px] text-slate-500 mt-1">Class Hierarchy</p>
+            </div>
+            <div onclick="visualizeOOP('polymorphism')" class="oop-card p-5 rounded-2xl glass" id="card-polymorphism">
+                <h4 class="font-bold text-[11px] uppercase tracking-tight">Polymorphism</h4>
+                <p class="text-[9px] text-slate-500 mt-1">Many Forms</p>
+            </div>
+            <div onclick="visualizeOOP('abstraction')" class="oop-card p-5 rounded-2xl glass" id="card-abstraction">
+                <h4 class="font-bold text-[11px] uppercase tracking-tight">Abstraction</h4>
+                <p class="text-[9px] text-slate-500 mt-1">Managed Complexity</p>
+            </div>
+        </div>
+
+        <button onclick="executeAction()" id="btn-action" class="w-full py-4 bg-purple-600 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-purple-500/20 hover:bg-purple-500 active:scale-95 transition mb-8">Instantiate Blueprint</button>
+
+        <div class="relative group">
+            <div class="absolute -top-3 left-6 px-3 py-1 bg-purple-600 rounded-full text-[9px] font-black uppercase tracking-tighter z-10 shadow-lg">Snippet.cpp</div>
+            <div class="bg-slate-950/80 p-6 pt-8 rounded-[2rem] border border-white/5">
+                <pre id="code-terminal" class="math-font text-slate-300 overflow-x-auto"></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed bottom-12 right-12 z-50 text-right pointer-events-none">
+        <div id="status-val" class="text-8xl font-black text-purple-600 opacity-10 tracking-tighter leading-none">IDLE</div>
+        <div id="status-label" class="text-[10px] font-bold text-slate-500 mt-3 uppercase tracking-widest">Awaiting Command</div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, clock, group;
+        let activeObjects = [], activeLinks = [];
+        let currentConcept = 'encapsulation';
+
+        const SNIPPETS = {
+            encapsulation: `<span class="code-keyword">class</span> <span class="code-func">Vault</span> {
+  <span class="code-keyword">private</span>:
+    <span class="code-keyword">float</span> key; <span class="code-comment">// Hidden</span>
+  <span class="code-keyword">public</span>:
+    <span class="code-func">void</span> access();
+};`,
+            inheritance: `<span class="code-keyword">class</span> <span class="code-func">Parent</span> { ... };
+<span class="code-keyword">class</span> <span class="code-func">Child</span> : <span class="code-keyword">public</span> Parent {
+    <span class="code-comment">// Reusing traits</span>
+};`,
+            polymorphism: `<span class="code-keyword">virtual void</span> draw();
+<span class="code-comment">// One interface,</span>
+<span class="code-comment">// many implementations.</span>`,
+            abstraction: `<span class="code-comment">// Complex logic internal</span>
+<span class="code-keyword">interface</span> <span class="code-func">Engine</span> {
+    <span class="code-func">void</span> start();
+};`
+        };
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+            camera.position.set(12, 10, 15);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas-bg'), antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            clock = new THREE.Clock();
+            group = new THREE.Group();
+            scene.add(group);
+
+            // Lighting
+            scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+            const spotlight = new THREE.SpotLight(0x8b5cf6, 2);
+            spotlight.position.set(15, 20, 15);
+            scene.add(spotlight);
+
+            // Background Grid & Stars
+            const grid = new THREE.GridHelper(100, 40, 0x1e293b, 0x0f172a);
+            grid.position.y = -6;
+            scene.add(grid);
+
+            visualizeOOP('encapsulation');
+            animate();
+        }
+
+        function visualizeOOP(concept) {
+            currentConcept = concept;
+            handleReset();
+            document.querySelectorAll('.oop-card').forEach(c => c.classList.remove('active'));
+            document.getElementById(`card-${concept}`).classList.add('active');
+            document.getElementById('code-terminal').innerHTML = SNIPPETS[concept];
+            
+            const btn = document.getElementById('btn-action');
+            const labels = {
+                encapsulation: "Protect Data",
+                inheritance: "Derive Class",
+                polymorphism: "Invoke Virtual",
+                abstraction: "Hide Complexity"
+            };
+            btn.innerText = labels[concept];
+            updateStatus(concept.toUpperCase(), "Logic Swapped");
+        }
+
+        function handleReset() {
+            activeObjects.forEach(obj => {
+                if(obj.geometry) obj.geometry.dispose();
+                if(obj.material) obj.material.dispose();
+                group.remove(obj);
+            });
+            activeLinks.forEach(link => group.remove(link));
+            activeObjects = []; activeLinks = [];
+        }
+
+        async function executeAction() {
+            handleReset();
+            updateStatus("ACTIVE", "Simulating...");
+
+            switch(currentConcept) {
+                case 'encapsulation':
+                    createEncapsulation();
+                    break;
+                case 'inheritance':
+                    createInheritance();
+                    break;
+                case 'polymorphism':
+                    createPolymorphism();
+                    break;
+                case 'abstraction':
+                    createAbstraction();
+                    break;
+            }
+        }
+
+        function createEncapsulation() {
+            const shell = new THREE.Mesh(
+                new THREE.SphereGeometry(3, 32, 32),
+                new THREE.MeshPhongMaterial({ color: 0x8b5cf6, transparent: true, opacity: 0.15, wireframe: true })
+            );
+            const core = new THREE.Mesh(
+                new THREE.IcosahedronGeometry(1, 2),
+                new THREE.MeshStandardMaterial({ color: 0xec4899, emissive: 0xec4899, emissiveIntensity: 0.5 })
+            );
+            group.add(shell);
+            shell.add(core);
+            activeObjects.push(shell, core);
+            
+            new TWEEN.Tween(core.scale).to({ x: 1.5, y: 1.5, z: 1.5 }, 1000).yoyo(true).repeat(Infinity).start();
+        }
+
+        function createInheritance() {
+            const parent = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshPhongMaterial({ color: 0x8b5cf6 }));
+            parent.position.y = 4;
+            group.add(parent);
+            activeObjects.push(parent);
+
+            for(let i=0; i<3; i++) {
+                const child = new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,1.2), new THREE.MeshPhongMaterial({ color: 0x06b6d4 }));
+                child.position.set(i*3-3, -2, 0);
+                group.add(child);
+                activeObjects.push(child);
+                
+                const points = [new THREE.Vector3(0, 4, 0), new THREE.Vector3(i*3-3, -2, 0)];
+                const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0x475569 }));
+                group.add(line);
+                activeLinks.push(line);
+            }
+        }
+
+        function createPolymorphism() {
+            const geos = [new THREE.BoxGeometry(2,2,2), new THREE.SphereGeometry(1.2, 32, 32), new THREE.TorusGeometry(1, 0.4, 16, 32)];
+            geos.forEach((geo, i) => {
+                const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: 0x8b5cf6 }));
+                mesh.position.x = i * 4 - 4;
+                group.add(mesh);
+                activeObjects.push(mesh);
+                new TWEEN.Tween(mesh.rotation).to({ y: Math.PI * 2, x: Math.PI }, 2000).repeat(Infinity).start();
+            });
+        }
+
+        function createAbstraction() {
+            // Complex Internals
+            const internalGroup = new THREE.Group();
+            for(let i=0; i<20; i++) {
+                const ring = new THREE.Mesh(
+                    new THREE.TorusGeometry(Math.random()*2, 0.05, 8, 50),
+                    new THREE.MeshPhongMaterial({ color: 0x475569, transparent: true, opacity: 0.4 })
+                );
+                ring.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, 0);
+                internalGroup.add(ring);
+            }
+            // Simple Interface
+            const shell = new THREE.Mesh(
+                new THREE.IcosahedronGeometry(4, 1),
+                new THREE.MeshStandardMaterial({ color: 0x1e293b, transparent: true, opacity: 0.85, flatShading: true })
+            );
+            group.add(internalGroup, shell);
+            activeObjects.push(internalGroup, shell);
+        }
+
+        function updateStatus(val, label) {
+            const el = document.getElementById('status-val');
+            el.innerText = val;
+            el.style.opacity = "0.1";
+            document.getElementById('status-label').innerText = label;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update();
+            const et = clock.getElapsedTime();
+            
+            group.rotation.y = et * 0.1;
+            
+            if(currentConcept === 'abstraction' && activeObjects.length > 0) {
+                activeObjects[0].rotation.x += 0.01;
+                activeObjects[0].rotation.z += 0.01;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        init();
+    </script>
+</body>
+</html>

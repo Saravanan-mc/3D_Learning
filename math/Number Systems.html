@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering Number Systems | Complete Visual Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --natural: #ef4444;
+            --whole: #d97706;
+            --integer: #059669;
+            --rational: #2563eb;
+            --irrational: #7c3aed;
+            --real: #db2777;
+        }
+        body { 
+            background-color: #f8fafc; 
+            color: #0f172a; 
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(0,0,0,0.1); }
+        .venn-box { border: 2px solid rgba(0,0,0,0.05); border-radius: 24px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .venn-box:hover { border-color: var(--primary); transform: scale(1.02); background: rgba(37, 99, 235, 0.05); }
+        input[type="range"] { accent-color: var(--primary); }
+        .math-font { font-family: 'Fira Code', monospace; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .active-dot { box-shadow: 0 0 15px currentColor; }
+    </style>
+</head>
+<body class="selection:bg-blue-500/10">
+
+    <!-- Sticky Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xl text-white">N</div>
+            <h1 class="text-xl font-extrabold tracking-tight text-slate-900">NumberSystems<span class="text-blue-600">.edu</span></h1>
+        </div>
+        <div class="hidden lg:flex space-x-8 text-sm font-medium text-slate-500">
+            <a href="#hierarchy" class="hover:text-blue-600 transition">Hierarchy</a>
+            <a href="#number-line" class="hover:text-blue-600 transition">Number Line</a>
+            <a href="#place-value" class="hover:text-blue-600 transition">Place Value</a>
+            <a href="#rounding" class="hover:text-blue-600 transition">Rounding</a>
+            <a href="#comparison" class="hover:text-blue-600 transition">Comparison</a>
+        </div>
+        <button onclick="scrollToSection('hierarchy')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-xs font-bold transition">Start Learning</button>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="min-h-screen flex flex-col items-center justify-center text-center px-6 relative overflow-hidden bg-white">
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-200/30 rounded-full blur-[120px] animate-pulse"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-200/30 rounded-full blur-[150px] animate-pulse"></div>
+        
+        <div class="z-10 max-w-4xl">
+            <span class="inline-block px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mb-6 tracking-widest uppercase">Fundamental Mathematics</span>
+            <h2 class="text-6xl md:text-8xl font-black mb-8 leading-tight text-slate-900">
+                Beyond Just <br><span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Counting</span>
+            </h2>
+            <p class="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+                Discover the elegant structures behind every digit. From the counting numbers of our ancestors to the infinite complexity of real numbers.
+            </p>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+                <button onclick="scrollToSection('hierarchy')" class="w-full md:w-auto px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:scale-105 transition shadow-xl shadow-blue-500/20">Explore Hierarchy</button>
+                <button onclick="scrollToSection('number-line')" class="w-full md:w-auto px-8 py-4 glass text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition">View Number Line</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Section 1: Hierarchy -->
+    <section id="hierarchy" class="py-24 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-16 items-start">
+                <div>
+                    <h3 class="text-4xl font-bold mb-6 text-slate-900">The Family Tree <br>of Numbers</h3>
+                    <p class="text-slate-600 mb-10 leading-relaxed">
+                        Numbers are classified into nested sets. Every natural number is also an integer, and every integer is also a rational number.
+                    </p>
+                    
+                    <div class="space-y-4">
+                        <div class="p-6 glass rounded-2xl border-l-4 border-red-500 hover:bg-red-50 transition" onclick="highlightSet('natural')">
+                            <h4 class="font-bold text-red-600 flex items-center">Natural Numbers (ℕ) <span class="ml-2 opacity-50 text-xs tracking-tighter uppercase font-mono">{1, 2, 3...}</span></h4>
+                            <p class="text-sm text-slate-500">Used for counting things. The simplest number set.</p>
+                        </div>
+                        <div class="p-6 glass rounded-2xl border-l-4 border-amber-600 hover:bg-amber-50 transition" onclick="highlightSet('whole')">
+                            <h4 class="font-bold text-amber-600 flex items-center">Whole Numbers (𝕎) <span class="ml-2 opacity-50 text-xs tracking-tighter uppercase font-mono">{0, 1, 2...}</span></h4>
+                            <p class="text-sm text-slate-500">Natural numbers plus zero. Introduces the concept of "None".</p>
+                        </div>
+                        <div class="p-6 glass rounded-2xl border-l-4 border-emerald-600 hover:bg-emerald-50 transition" onclick="highlightSet('integers')">
+                            <h4 class="font-bold text-emerald-600 flex items-center">Integers (ℤ) <span class="ml-2 opacity-50 text-xs tracking-tighter uppercase font-mono">{...-1, 0, 1...}</span></h4>
+                            <p class="text-sm text-slate-500">Includes whole numbers and their negative opposites.</p>
+                        </div>
+                        <div class="p-6 glass rounded-2xl border-l-4 border-blue-600 hover:bg-blue-50 transition" onclick="highlightSet('rational')">
+                            <h4 class="font-bold text-blue-600 flex items-center">Rational Numbers (ℚ) <span class="ml-2 opacity-50 text-xs tracking-tighter uppercase font-mono">{1/2, 0.75}</span></h4>
+                            <p class="text-sm text-slate-500">Any number that can be expressed as a fraction $p/q$.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual Nesting Container -->
+                <div class="sticky top-24 h-[600px] flex items-center justify-center">
+                    <div id="v-real" class="w-full h-full border-4 border-pink-200 rounded-[60px] p-8 flex flex-col items-center justify-start relative group bg-white">
+                        <span class="absolute top-4 right-6 font-black text-pink-600 text-2xl">ℝ <span class="text-xs font-normal opacity-50">REAL</span></span>
+                        
+                        <div class="w-full flex justify-between h-full space-x-4">
+                            <!-- Rational Side -->
+                            <div id="v-rat-box" class="flex-1 border-2 border-blue-200 rounded-[40px] p-4 flex flex-col items-center space-y-4 relative bg-blue-50/50">
+                                <span class="font-bold text-blue-600">Rational (ℚ)</span>
+                                <div id="v-int-box" class="w-[90%] border-2 border-emerald-200 rounded-[30px] p-4 flex flex-col items-center space-y-4 bg-emerald-50/50">
+                                    <span class="font-bold text-emerald-600">Integers (ℤ)</span>
+                                    <div id="v-whole-box" class="w-[90%] border-2 border-amber-200 rounded-[25px] p-4 flex flex-col items-center space-y-4 bg-amber-50/50">
+                                        <span class="font-bold text-amber-600">Whole (𝕎)</span>
+                                        <div id="v-nat-box" class="w-[90%] border-2 border-red-200 rounded-[20px] p-6 flex flex-col items-center justify-center bg-red-50/50">
+                                            <span class="font-black text-red-600 text-3xl">ℕ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Irrational Side -->
+                            <div id="v-irr-box" class="w-32 border-2 border-purple-200 rounded-[40px] p-4 flex flex-col items-center justify-center bg-purple-50/50">
+                                <span class="font-bold text-purple-600 [writing-mode:vertical-lr] tracking-widest uppercase">Irrational</span>
+                                <div class="mt-4 font-mono text-xs opacity-50 text-slate-500">π, √2, e</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Number Line -->
+    <section id="number-line" class="py-24 px-6 bg-slate-100/50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-16">
+                <h3 class="text-4xl font-black mb-4 text-slate-900">The Real Number Line</h3>
+                <p class="text-slate-600">Toggle sets to see how they occupy space on the horizontal axis.</p>
+            </div>
+            
+            <div class="glass p-10 rounded-[40px] shadow-xl overflow-hidden bg-white">
+                <div class="flex flex-wrap justify-center gap-2 mb-10">
+                    <button onclick="updateLine('natural')" class="px-6 py-2 rounded-full border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold transition">Natural</button>
+                    <button onclick="updateLine('integers')" class="px-6 py-2 rounded-full border border-emerald-200 text-emerald-600 hover:bg-emerald-50 text-xs font-bold transition">Integers</button>
+                    <button onclick="updateLine('rational')" class="px-6 py-2 rounded-full border border-blue-200 text-blue-600 hover:bg-blue-50 text-xs font-bold transition">Rational</button>
+                    <button onclick="updateLine('irrational')" class="px-6 py-2 rounded-full border border-purple-200 text-purple-600 hover:bg-purple-50 text-xs font-bold transition">Irrational</button>
+                    <button onclick="updateLine('all')" class="px-6 py-2 rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-bold transition">The Real Line</button>
+                </div>
+                
+                <div class="relative py-12">
+                    <canvas id="lineCanvas" class="w-full h-40"></canvas>
+                </div>
+                
+                <div class="mt-6 flex items-center justify-between text-xs font-mono text-slate-400">
+                    <span>Negative Infinity (-∞)</span>
+                    <span id="line-status" class="text-slate-700 bg-slate-100 px-4 py-1 rounded-lg border border-slate-200">Showing: All Reals</span>
+                    <span>Positive Infinity (+∞)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Place Value Explorer -->
+    <section id="place-value" class="py-24 px-6">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="flex-1">
+                    <h3 class="text-4xl font-black mb-6 text-slate-900">Place Value & <br>Base-10 Power</h3>
+                    <p class="text-slate-600 leading-relaxed mb-8">
+                        The position of a digit determines its actual magnitude. In our decimal system, each move to the left is a <strong>10x increase</strong>.
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center font-bold text-blue-600">10²</div>
+                            <span class="text-slate-700">Hundreds Place (100)</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center font-bold text-blue-600">10⁻¹</div>
+                            <span class="text-slate-700">Tenths Place (0.1)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full max-w-lg glass p-8 rounded-[40px] space-y-8 bg-white shadow-lg">
+                    <div class="flex justify-center items-end space-x-1 md:space-x-3 math-font text-slate-900">
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-blue-600 font-bold mb-2 uppercase">H</span>
+                            <div id="pv-100" class="w-12 md:w-16 h-20 bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-4xl font-black rounded-2xl shadow-sm">0</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-blue-600 font-bold mb-2 uppercase">T</span>
+                            <div id="pv-10" class="w-12 md:w-16 h-20 bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-4xl font-black rounded-2xl shadow-sm">4</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-blue-600 font-bold mb-2 uppercase">O</span>
+                            <div id="pv-1" class="w-12 md:w-16 h-20 bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-4xl font-black rounded-2xl shadow-sm">2</div>
+                        </div>
+                        <div class="text-5xl font-black pb-4 text-blue-600">.</div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-purple-600 font-bold mb-2 uppercase">10th</span>
+                            <div id="pv-01" class="w-12 md:w-16 h-20 bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-4xl font-black rounded-2xl shadow-sm">7</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-purple-600 font-bold mb-2 uppercase">100th</span>
+                            <div id="pv-001" class="w-12 md:w-16 h-20 bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-4xl font-black rounded-2xl shadow-sm">5</div>
+                        </div>
+                    </div>
+
+                    <input type="range" min="0" max="999.99" step="0.01" value="42.75" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer" id="pv-slider">
+                    
+                    <div class="p-6 bg-blue-50/50 rounded-2xl border border-blue-100">
+                        <p class="text-xs text-blue-600/50 mb-2 uppercase tracking-widest font-bold">Expanded Notation</p>
+                        <div id="pv-expanded" class="math-font text-blue-700 text-sm md:text-base">
+                            0 + 40 + 2 + 0.7 + 0.05
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Rounding Visualizer -->
+    <section id="rounding" class="py-24 px-6 bg-slate-100/50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-12">
+                <h3 class="text-4xl font-black mb-4 text-slate-900">Rounding & Estimation</h3>
+                <p class="text-slate-600">If the digit is 5 or more, round up. If it's 4 or less, stay.</p>
+            </div>
+            
+            <div class="glass p-12 rounded-[40px] flex flex-col items-center bg-white shadow-xl">
+                <div class="text-6xl font-black mb-12 math-font flex items-center space-x-6">
+                    <span id="round-val" class="text-slate-900">7.4</span>
+                    <span class="text-slate-400">→</span>
+                    <span id="round-res" class="text-blue-600">7</span>
+                </div>
+                
+                <div class="w-full max-w-2xl relative h-2 bg-slate-200 rounded-full mb-10">
+                    <div id="round-handle" class="absolute -top-3 left-1/2 w-8 h-8 bg-white rounded-full shadow-lg border-4 border-blue-600 cursor-pointer -translate-x-1/2 transition-all"></div>
+                    <div class="absolute w-full flex justify-between top-6 text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                        <span>7.0</span>
+                        <span>7.1</span>
+                        <span>7.2</span>
+                        <span>7.3</span>
+                        <span>7.4</span>
+                        <span class="text-blue-500">7.5</span>
+                        <span>7.6</span>
+                        <span>7.7</span>
+                        <span>7.8</span>
+                        <span>7.9</span>
+                        <span>8.0</span>
+                    </div>
+                </div>
+                
+                <p id="round-text" class="text-slate-500 italic">"4 or less, let it rest" (staying at 7)</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Comparison Tool -->
+    <section id="comparison" class="py-24 px-6 pb-40">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <h3 class="text-4xl font-black mb-4 text-slate-900">Comparison & Inequalities</h3>
+                <p class="text-slate-600">Determine relation between values using $>, <,$ or $=$.</p>
+            </div>
+
+            <div class="flex flex-col md:flex-row items-center justify-between gap-10">
+                <div class="flex-1 w-full glass p-8 rounded-3xl flex flex-col items-center bg-white shadow-sm">
+                    <span class="text-xs font-bold text-slate-400 mb-4 uppercase">Value A</span>
+                    <input type="number" id="comp-a" value="12" class="bg-transparent text-6xl font-black text-center w-full focus:outline-none focus:text-blue-600 text-slate-900 transition">
+                </div>
+                
+                <div id="comp-sign" class="text-8xl font-black text-blue-600 animate-pulse">
+                    >
+                </div>
+
+                <div class="flex-1 w-full glass p-8 rounded-3xl flex flex-col items-center bg-white shadow-sm">
+                    <span class="text-xs font-bold text-slate-400 mb-4 uppercase">Value B</span>
+                    <input type="number" id="comp-b" value="8" class="bg-transparent text-6xl font-black text-center w-full focus:outline-none focus:text-red-600 text-slate-900 transition">
+                </div>
+            </div>
+            
+            <div id="comp-explanation" class="mt-12 text-center p-6 bg-slate-50 rounded-2xl text-slate-600 border border-slate-100">
+                12 is <strong>greater than</strong> 8.
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-12 border-t border-slate-200 text-center text-slate-400 text-sm bg-white">
+        <p>© 2024 NumberSystems.edu | A complete educational math resource</p>
+    </footer>
+
+    <script>
+        // --- CORE UTILS ---
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- LINE ENGINE ---
+        const canvas = document.getElementById('lineCanvas');
+        const ctx = canvas.getContext('2d');
+        let lineMode = 'all';
+
+        function updateLine(mode) {
+            lineMode = mode;
+            const status = document.getElementById('line-status');
+            const map = {
+                'natural': "Showing: Natural Numbers",
+                'integers': "Showing: Integers",
+                'rational': "Showing: Rational Constants",
+                'irrational': "Showing: Irrational Constants",
+                'all': "Showing: All Real Numbers"
+            };
+            status.innerText = map[mode];
+            renderLine();
+        }
+
+        function renderLine() {
+            const w = canvas.width = canvas.offsetWidth;
+            const h = canvas.height = canvas.offsetHeight;
+            const centerY = h / 2;
+            const scale = 50;
+            const offset = w / 2;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw Base Line
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(w, centerY);
+            ctx.stroke();
+
+            // Draw Ticks
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#cbd5e1';
+            for (let i = -10; i <= 10; i++) {
+                const x = offset + i * scale;
+                ctx.beginPath();
+                ctx.moveTo(x, centerY - 8);
+                ctx.lineTo(x, centerY + 8);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '10px Fira Code';
+                ctx.textAlign = 'center';
+                ctx.fillText(i, x, centerY + 25);
+            }
+
+            const drawPoint = (val, color, label) => {
+                const x = offset + val * scale;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, centerY, 6, 0, Math.PI * 2);
+                ctx.fill();
+                if (label) {
+                    ctx.fillStyle = '#1e293b';
+                    ctx.font = 'bold 12px Inter';
+                    ctx.fillText(label, x, centerY - 15);
+                }
+            };
+
+            if (lineMode === 'natural') {
+                for (let i = 1; i <= 8; i++) drawPoint(i, '#dc2626');
+            } else if (lineMode === 'integers') {
+                for (let i = -8; i <= 8; i++) drawPoint(i, '#059669');
+            } else if (lineMode === 'rational') {
+                drawPoint(0.5, '#2563eb', '1/2');
+                drawPoint(-2.25, '#2563eb', '-9/4');
+                drawPoint(5.75, '#2563eb', '23/4');
+            } else if (lineMode === 'irrational') {
+                drawPoint(Math.PI, '#7c3aed', 'π');
+                drawPoint(Math.SQRT2, '#7c3aed', '√2');
+                drawPoint(-Math.E, '#7c3aed', '-e');
+            } else {
+                ctx.strokeStyle = '#db2777';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(0, centerY);
+                ctx.lineTo(w, centerY);
+                ctx.stroke();
+            }
+        }
+
+        // --- PLACE VALUE ENGINE ---
+        const pvSlider = document.getElementById('pv-slider');
+        pvSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            const str = val.toFixed(2).padStart(6, '0'); // 000.00
+            const [int, dec] = str.split('.');
+
+            document.getElementById('pv-100').innerText = int[0];
+            document.getElementById('pv-10').innerText = int[1];
+            document.getElementById('pv-1').innerText = int[2];
+            document.getElementById('pv-01').innerText = dec[0];
+            document.getElementById('pv-001').innerText = dec[1];
+
+            const h = parseInt(int[0]) * 100;
+            const t = parseInt(int[1]) * 10;
+            const o = parseInt(int[2]);
+            const d1 = (parseInt(dec[0]) / 10).toFixed(1);
+            const d2 = (parseInt(dec[1]) / 100).toFixed(2);
+
+            document.getElementById('pv-expanded').innerText = 
+                `${h} + ${t} + ${o} + ${d1} + ${d2}`;
+        });
+
+        // --- ROUNDING ENGINE ---
+        const handle = document.getElementById('round-handle');
+        let isDragging = false;
+
+        handle.addEventListener('mousedown', () => isDragging = true);
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = handle.parentElement.getBoundingClientRect();
+            let pos = (e.clientX - rect.left) / rect.width;
+            pos = Math.max(0, Math.min(1, pos));
+            
+            handle.style.left = (pos * 100) + '%';
+            
+            // Calculate value between 7.0 and 8.0
+            const val = 7 + pos;
+            const displayVal = val.toFixed(1);
+            const roundedVal = Math.round(val);
+            
+            document.getElementById('round-val').innerText = displayVal;
+            document.getElementById('round-res').innerText = roundedVal;
+            
+            const decimal = parseFloat(displayVal.split('.')[1]);
+            const text = document.getElementById('round-text');
+            if (decimal >= 5) {
+                text.innerText = `"5 or more, raise the score" (up to 8)`;
+                text.className = "text-blue-600 italic font-semibold";
+            } else {
+                text.innerText = `"4 or less, let it rest" (staying at 7)`;
+                text.className = "text-slate-500 italic";
+            }
+        });
+
+        // --- COMPARISON ENGINE ---
+        const inputA = document.getElementById('comp-a');
+        const inputB = document.getElementById('comp-b');
+        const sign = document.getElementById('comp-sign');
+        const explanation = document.getElementById('comp-explanation');
+
+        function updateComparison() {
+            const a = parseFloat(inputA.value) || 0;
+            const b = parseFloat(inputB.value) || 0;
+
+            if (a > b) {
+                sign.innerText = '>';
+                sign.className = 'text-8xl font-black text-blue-600';
+                explanation.innerHTML = `${a} is <strong>greater than</strong> ${b}.`;
+            } else if (a < b) {
+                sign.innerText = '<';
+                sign.className = 'text-8xl font-black text-red-600';
+                explanation.innerHTML = `${a} is <strong>less than</strong> ${b}.`;
+            } else {
+                sign.innerText = '=';
+                sign.className = 'text-8xl font-black text-emerald-600';
+                explanation.innerHTML = `Both numbers are <strong>exactly equal</strong>.`;
+            }
+        }
+
+        inputA.addEventListener('input', updateComparison);
+        inputB.addEventListener('input', updateComparison);
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            updateLine('all');
+            handle.style.left = '40%';
+            updateComparison();
+        };
+
+        window.addEventListener('resize', renderLine);
+    </script>
+</body>
+</html>

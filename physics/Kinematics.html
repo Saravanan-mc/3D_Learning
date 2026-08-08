@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinematics | Visual Master Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #f8fafc; 
+            color: #1e293b; 
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .math-font { font-family: 'Fira Code', monospace; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.05); }
+        .card { background: white; border-radius: 1.5rem; padding: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); transition: all 0.3s ease; }
+        .card:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        
+        #three-container { cursor: move; border-radius: 1rem; overflow: hidden; background: #020617; }
+        
+        input[type="range"] { accent-color: #ef4444; }
+    </style>
+</head>
+<body class="pb-20 selection:bg-red-100">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass px-6 py-4 flex justify-between items-center border-b border-slate-100">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center font-bold text-xl text-white">v</div>
+            <h1 class="text-xl font-black tracking-tighter text-slate-900">Motion<span class="text-red-600">Master</span></h1>
+        </div>
+        <div class="hidden md:flex space-x-6 text-xs font-bold uppercase tracking-widest text-slate-500">
+            <a href="#vectors" class="hover:text-red-600 transition">Distance/Disp</a>
+            <a href="#playground" class="hover:text-red-600 transition">Playground</a>
+            <a href="#graphs" class="hover:text-red-600 transition">Graphs</a>
+            <a href="#projectile" class="hover:text-red-600 transition">3D Projectile</a>
+            <a href="#equations" class="hover:text-red-600 transition">Equations</a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="pt-32 pb-16 px-6 text-center bg-white border-b border-slate-100 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" style="background-image: radial-gradient(#ef4444 1px, transparent 1px); background-size: 30px 30px;"></div>
+        <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tight text-slate-900 relative z-10">
+            Motion & <span class="text-red-600">Kinematics</span>
+        </h2>
+        <p class="text-slate-500 text-lg max-w-2xl mx-auto mb-8 relative z-10">
+            The study of how things move without considering the forces that cause movement. Position, velocity, and acceleration in sync.
+        </p>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 mt-12 space-y-16">
+
+        <!-- 1. Distance vs Displacement -->
+        <section id="vectors" class="scroll-mt-24">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">1</div>
+                <h3 class="text-3xl font-bold text-slate-900">Distance vs. Displacement</h3>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="card space-y-6">
+                    <h4 class="text-xl font-bold text-slate-900">Conceptual Difference</h4>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-slate-50 rounded-xl border-l-4 border-slate-400">
+                            <span class="font-bold text-slate-700 block mb-1">Distance (Scalar)</span>
+                            <p class="text-xs text-slate-500">The total path length covered by an object. It only has magnitude.</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-xl border-l-4 border-red-500">
+                            <span class="font-bold text-red-700 block mb-1">Displacement (Vector)</span>
+                            <p class="text-xs text-slate-500">The straight-line distance from the start point to the end point. Includes direction.</p>
+                        </div>
+                    </div>
+                    <div class="pt-4 border-t border-slate-50">
+                        <button onclick="resetPath()" class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition">Reset Tracker</button>
+                    </div>
+                </div>
+
+                <div class="card flex flex-col items-center">
+                    <label class="text-[10px] font-bold uppercase text-slate-400 mb-4 block">Interactive Path Tracer</label>
+                    <canvas id="path-canvas" width="400" height="300" class="w-full bg-slate-50 rounded-2xl cursor-crosshair border border-dashed border-slate-200"></canvas>
+                    <div class="grid grid-cols-2 gap-4 w-full mt-6">
+                        <div class="text-center">
+                            <span class="text-[10px] uppercase font-bold text-slate-400">Total Distance</span>
+                            <div id="dist-val" class="text-2xl font-black text-slate-900">0 m</div>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-[10px] uppercase font-bold text-red-400">Net Displacement</span>
+                            <div id="disp-val" class="text-2xl font-black text-red-600">0 m</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Motion Playground -->
+        <section id="playground" class="scroll-mt-24">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">2</div>
+                <h3 class="text-3xl font-bold text-slate-900">Velocity & Acceleration</h3>
+            </div>
+
+            <div class="card">
+                <div class="grid lg:grid-cols-3 gap-8 items-center">
+                    <div class="lg:col-span-1 space-y-6">
+                        <h4 class="text-lg font-bold">Dynamic Controls</h4>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase mb-2 block">Initial Velocity (u)</label>
+                            <input type="range" id="input-u" min="0" max="50" value="0" class="w-full">
+                            <div class="text-xs text-slate-500 mt-1"><span id="u-val">0</span> m/s</div>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase mb-2 block">Acceleration (a)</label>
+                            <input type="range" id="input-a" min="-10" max="10" value="2" class="w-full">
+                            <div class="text-xs text-slate-500 mt-1"><span id="a-val">2</span> m/s²</div>
+                        </div>
+                        <div class="pt-4 space-x-2">
+                            <button onclick="startSimulation()" class="px-6 py-2 bg-red-600 text-white text-xs font-bold rounded-full shadow-lg shadow-red-200">Start</button>
+                            <button onclick="resetSimulation()" class="px-6 py-2 bg-slate-100 text-slate-500 text-xs font-bold rounded-full">Reset</button>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="h-32 bg-slate-900 rounded-3xl relative overflow-hidden border-4 border-slate-800">
+                            <div id="sim-object" class="absolute top-1/2 left-0 -translate-y-1/2 w-10 h-10 bg-red-500 rounded-lg shadow-xl flex items-center justify-center">
+                                <div class="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                            <div class="absolute bottom-2 right-4 text-[10px] font-mono text-slate-500">Track Length: 100m</div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="p-4 bg-slate-50 rounded-2xl text-center border border-slate-100">
+                                <span class="text-[10px] uppercase font-bold text-slate-400">Time</span>
+                                <div id="stats-t" class="text-xl font-black">0.00 s</div>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded-2xl text-center border border-slate-100">
+                                <span class="text-[10px] uppercase font-bold text-slate-400">Velocity</span>
+                                <div id="stats-v" class="text-xl font-black">0.00 m/s</div>
+                            </div>
+                            <div class="p-4 bg-red-900 text-white rounded-2xl text-center">
+                                <span class="text-[10px] uppercase font-bold text-red-300">Position</span>
+                                <div id="stats-s" class="text-xl font-black">0.00 m</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Motion Graphs -->
+        <section id="graphs" class="scroll-mt-24">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">3</div>
+                <h3 class="text-3xl font-bold text-slate-900">Visualizing with Graphs</h3>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card">
+                    <h4 class="text-sm font-bold text-slate-400 uppercase mb-4 tracking-widest">Position vs. Time ($s-t$)</h4>
+                    <canvas id="pos-graph" width="400" height="200" class="w-full bg-slate-50 rounded-xl"></canvas>
+                    <p class="text-[10px] text-slate-500 mt-4 italic">Slope of this graph represents <strong>Velocity</strong>.</p>
+                </div>
+                <div class="card">
+                    <h4 class="text-sm font-bold text-slate-400 uppercase mb-4 tracking-widest">Velocity vs. Time ($v-t$)</h4>
+                    <canvas id="vel-graph" width="400" height="200" class="w-full bg-slate-50 rounded-xl"></canvas>
+                    <p class="text-[10px] text-slate-500 mt-4 italic">Area under this graph represents <strong>Displacement</strong>.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 3D Projectile Motion -->
+        <section id="projectile" class="scroll-mt-24">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">4</div>
+                <h3 class="text-3xl font-bold text-slate-900">3D Projectile Motion</h3>
+            </div>
+            <div class="grid lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 h-[500px]" id="three-container"></div>
+                <div class="card flex flex-col justify-center space-y-6">
+                    <h4 class="text-xl font-bold">2D Independence</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Projectile motion is a combination of horizontal motion with constant velocity and vertical motion with constant acceleration (gravity).
+                    </p>
+                    <div class="p-6 bg-slate-900 text-white rounded-3xl">
+                        <span class="text-[10px] uppercase font-bold text-slate-500 mb-2 block">Key Variables</span>
+                        <ul class="text-xs space-y-3">
+                            <li><span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-2"></span><strong>Launch Angle:</strong> Changes the range and height.</li>
+                            <li><span class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2"></span><strong>Gravity:</strong> Constantly pulls down at $9.8 m/s^2$.</li>
+                        </ul>
+                    </div>
+                    <button onclick="launchProjectile()" class="w-full py-3 bg-red-600 text-white font-bold rounded-xl shadow-xl shadow-red-200 active:scale-95 transition">Launch Projectile</button>
+                    <p class="text-[10px] text-slate-400 italic text-center">Drag to rotate the view.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Equations of Motion -->
+        <section id="equations" class="scroll-mt-24 pb-20">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">5</div>
+                <h3 class="text-3xl font-bold text-slate-900">Equations of Motion</h3>
+            </div>
+
+            <div class="card max-w-3xl mx-auto">
+                <h4 class="text-xl font-bold mb-6 text-center text-slate-900 underline underline-offset-8 decoration-red-500/20">The Big Three (Constant Acceleration)</h4>
+                <div class="grid gap-6">
+                    <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col md:flex-row justify-between items-center">
+                        <div class="math-font text-2xl font-black text-red-600 mb-4 md:mb-0">v = u + at</div>
+                        <div class="text-xs text-slate-500 italic md:text-right">Relates velocity, time, and acceleration.</div>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col md:flex-row justify-between items-center">
+                        <div class="math-font text-2xl font-black text-red-600 mb-4 md:mb-0">s = ut + ½at²</div>
+                        <div class="text-xs text-slate-500 italic md:text-right">Relates position, time, and acceleration.</div>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col md:flex-row justify-between items-center">
+                        <div class="math-font text-2xl font-black text-red-600 mb-4 md:mb-0">v² = u² + 2as</div>
+                        <div class="text-xs text-slate-500 italic md:text-right">Independent of time.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="py-12 bg-white border-t border-slate-100 text-center text-slate-400 text-sm">
+        <p>© 2024 MotionMaster Visual Guide • Understanding Kinematics</p>
+    </footer>
+
+    <script>
+        // --- 1. PATH TRACER ENGINE ---
+        const pathCanvas = document.getElementById('path-canvas');
+        const pctx = pathCanvas.getContext('2d');
+        let isDrawing = false;
+        let points = [];
+        let totalDistance = 0;
+
+        pathCanvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const rect = pathCanvas.getBoundingClientRect();
+            points = [{ x: e.clientX - rect.left, y: e.clientY - rect.top }];
+            totalDistance = 0;
+            drawPath();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const rect = pathCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const last = points[points.length - 1];
+            const d = Math.sqrt(Math.pow(x - last.x, 2) + Math.pow(y - last.y, 2));
+            totalDistance += d;
+            
+            points.push({ x, y });
+            drawPath();
+        });
+
+        window.addEventListener('mouseup', () => isDrawing = false);
+
+        function drawPath() {
+            pctx.clearRect(0, 0, pathCanvas.width, pathCanvas.height);
+            
+            if (points.length < 1) return;
+
+            // Draw Start Point
+            pctx.fillStyle = '#1e293b';
+            pctx.beginPath(); pctx.arc(points[0].x, points[0].y, 5, 0, Math.PI * 2); pctx.fill();
+
+            // Draw Distance Path
+            pctx.strokeStyle = '#94a3b8';
+            pctx.lineWidth = 3;
+            pctx.beginPath();
+            pctx.moveTo(points[0].x, points[0].y);
+            points.forEach(p => pctx.lineTo(p.x, p.y));
+            pctx.stroke();
+
+            // Draw Displacement Vector
+            const end = points[points.length - 1];
+            pctx.strokeStyle = '#ef4444';
+            pctx.setLineDash([5, 5]);
+            pctx.beginPath();
+            pctx.moveTo(points[0].x, points[0].y);
+            pctx.lineTo(end.x, end.y);
+            pctx.stroke();
+            pctx.setLineDash([]);
+
+            // Draw End Point
+            pctx.fillStyle = '#ef4444';
+            pctx.beginPath(); pctx.arc(end.x, end.y, 5, 0, Math.PI * 2); pctx.fill();
+
+            // Stats
+            const displacement = Math.sqrt(Math.pow(end.x - points[0].x, 2) + Math.pow(end.y - points[0].y, 2));
+            document.getElementById('dist-val').innerText = (totalDistance / 10).toFixed(1) + " m";
+            document.getElementById('disp-val').innerText = (displacement / 10).toFixed(1) + " m";
+        }
+
+        function resetPath() {
+            points = [];
+            totalDistance = 0;
+            pctx.clearRect(0, 0, pathCanvas.width, pathCanvas.height);
+            document.getElementById('dist-val').innerText = "0 m";
+            document.getElementById('disp-val').innerText = "0 m";
+        }
+
+        // --- 2. MOTION SIMULATION ENGINE ---
+        let simInterval;
+        let time = 0, pos = 0, vel = 0;
+        let history = [];
+
+        function startSimulation() {
+            resetSimulation();
+            const u = parseFloat(document.getElementById('input-u').value);
+            const a = parseFloat(document.getElementById('input-a').value);
+            vel = u;
+            
+            simInterval = setInterval(() => {
+                time += 0.05;
+                vel += a * 0.05;
+                pos += vel * 0.05;
+
+                // Stop if out of bounds (100m)
+                if (pos >= 100 || pos < 0 || time > 10) {
+                    clearInterval(simInterval);
+                }
+
+                updateSimUI(pos, vel, time);
+                history.push({ t: time, s: pos, v: vel });
+                drawGraphs();
+            }, 50);
+        }
+
+        function resetSimulation() {
+            clearInterval(simInterval);
+            time = 0; pos = 0; vel = 0; history = [];
+            updateSimUI(0, 0, 0);
+            drawGraphs();
+        }
+
+        function updateSimUI(s, v, t) {
+            document.getElementById('sim-object').style.left = Math.min(100, Math.max(0, s)) + "%";
+            document.getElementById('stats-t').innerText = t.toFixed(2) + " s";
+            document.getElementById('stats-v').innerText = v.toFixed(2) + " m/s";
+            document.getElementById('stats-s').innerText = s.toFixed(2) + " m";
+            
+            document.getElementById('u-val').innerText = document.getElementById('input-u').value;
+            document.getElementById('a-val').innerText = document.getElementById('input-a').value;
+        }
+
+        // --- 3. GRAPHING ENGINE ---
+        function drawGraphs() {
+            const posCanvas = document.getElementById('pos-graph');
+            const velCanvas = document.getElementById('vel-graph');
+            
+            const draw = (canvas, dataKey, color) => {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                history.forEach((h, i) => {
+                    const x = (h.t / 10) * canvas.width;
+                    const y = canvas.height - (h[dataKey] / 100) * canvas.height;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            };
+
+            draw(posCanvas, 's', '#1e293b');
+            draw(velCanvas, 'v', '#ef4444');
+        }
+
+        // --- 4. THREE.JS PROJECTILE ENGINE ---
+        let scene, camera, renderer, projectile, trail;
+        let projTime = 0;
+        let isLaunching = false;
+        const container = document.getElementById('three-container');
+
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020617);
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(20, 20, 40);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // Ground Grid
+            const grid = new THREE.GridHelper(100, 20, 0x1e293b, 0x0f172a);
+            scene.add(grid);
+
+            // Projectile
+            const geo = new THREE.SphereGeometry(0.8, 32, 32);
+            const mat = new THREE.MeshPhongMaterial({ color: 0xef4444, emissive: 0x450a0a });
+            projectile = new THREE.Mesh(geo, mat);
+            scene.add(projectile);
+
+            // Lights
+            const light = new THREE.PointLight(0xffffff, 1, 100);
+            light.position.set(10, 20, 10);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x404040));
+
+            animateThree();
+        }
+
+        function launchProjectile() {
+            projTime = 0;
+            isLaunching = true;
+            projectile.position.set(-30, 0, 0);
+        }
+
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            
+            if (isLaunching) {
+                projTime += 0.05;
+                const v0 = 20; // launch velocity
+                const theta = Math.PI / 4; // 45 degrees
+                const g = 9.8;
+
+                // Kinematics: x = v0*cos(theta)*t, y = v0*sin(theta)*t - 0.5*g*t^2
+                const x = -30 + v0 * Math.cos(theta) * projTime;
+                const y = v0 * Math.sin(theta) * projTime - 0.5 * g * Math.pow(projTime, 2);
+
+                if (y < 0 && projTime > 0.1) {
+                    isLaunching = false;
+                } else {
+                    projectile.position.set(x, Math.max(0, y), 0);
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            initThree();
+            resetSimulation();
+            
+            // 3D rotation handler
+            let isDragging = false;
+            container.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+            container.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    scene.rotation.y += e.movementX * 0.01;
+                }
+            });
+        };
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>

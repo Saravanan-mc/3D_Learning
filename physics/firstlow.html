@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newton's First Law - Inertia Lab</title>
+    <!-- Three.js for 3D Rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Tailwind CSS for UI Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: #020617; 
+            color: white; 
+            user-select: none;
+        }
+        #canvas-container { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+        }
+        .ui-overlay { 
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            z-index: 10; 
+            pointer-events: none; 
+        }
+        .controls { 
+            position: absolute; 
+            bottom: 30px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 10; 
+            width: 90%; 
+            max-width: 500px; 
+        }
+        .glass { 
+            background: rgba(15, 23, 42, 0.75); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 20px; 
+            pointer-events: auto; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+        input[type=range] { 
+            width: 100%; 
+            height: 6px; 
+            background: #1e293b; 
+            border-radius: 4px; 
+            appearance: none; 
+            cursor: pointer; 
+        }
+        input[type=range]::-webkit-slider-thumb { 
+            appearance: none; 
+            width: 20px; 
+            height: 20px; 
+            background: #ec4899; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            border: 3px solid #f8fafc;
+        }
+        .law-quote { 
+            font-style: italic;
+            border-left: 3px solid #ec4899;
+        }
+        .vector-label {
+            position: absolute;
+            pointer-events: none;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 10px;
+            color: #ec4899;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay: Law Definition & Stats -->
+    <div class="ui-overlay space-y-4 max-w-[280px] md:max-w-md">
+        <div class="glass p-6">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-pink-400 to-purple-500 bg-clip-text text-transparent">Newton's First Law</h1>
+            <p class="text-slate-400 text-[10px] mb-4 uppercase tracking-[0.2em]">The Law of Inertia</p>
+            
+            <div class="law-quote text-sm text-slate-300 pl-4 py-2 my-4">
+                "An object at rest stays at rest and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force."
+            </div>
+        </div>
+
+        <div class="glass p-5 grid grid-cols-1 gap-3 text-sm">
+            <div class="flex justify-between items-center">
+                <span class="text-slate-400">Object Mass:</span>
+                <span id="m-val" class="font-bold text-pink-400 text-lg">5.0 kg</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-slate-400">Velocity (v):</span>
+                <span id="v-val" class="font-bold text-sky-400 text-lg">0.0 m/s</span>
+            </div>
+            <div class="flex justify-between items-center border-t border-slate-700 pt-3">
+                <span class="text-slate-400">Net Force (ΣF):</span>
+                <span id="f-val" class="font-bold text-green-400 text-xl">0 N</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Controls Panel -->
+    <div class="controls glass p-6 space-y-6">
+        <div class="space-y-4">
+            <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span>Mass (Inertia)</span>
+                <span class="text-pink-400" id="mass-label">5 kg</span>
+            </div>
+            <input type="range" id="mass-slider" min="1" max="20" step="0.5" value="5">
+        </div>
+        
+        <div class="flex gap-4">
+            <button id="pulse-btn" class="flex-1 bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-pink-900/20 uppercase text-xs">Apply Instant Force</button>
+            <button id="stop-btn" class="flex-1 border border-slate-600 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition-all uppercase text-xs">Reset Position</button>
+        </div>
+
+        <div class="flex justify-between items-center">
+            <p class="text-[9px] text-slate-500 uppercase tracking-widest">Observe: Without Friction, Motion is Eternal</p>
+            <div class="flex gap-2">
+                <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                <span class="text-[9px] text-slate-400 uppercase">Balanced Forces</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * PHYSICS STATE
+         */
+        let mass = 5.0;
+        let velocity = 0;
+        let position = 0;
+        let isMoving = false;
+        
+        const WORLD_LIMIT = 25;
+
+        /**
+         * THREE.JS SETUP
+         */
+        let scene, camera, renderer, object, floor, velocityArrow;
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020617);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 15);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            addLighting();
+            createEnvironment();
+            createTestObject();
+            
+            animate();
+        }
+
+        function addLighting() {
+            const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambient);
+
+            const spot = new THREE.SpotLight(0xffffff, 1);
+            spot.position.set(0, 10, 5);
+            scene.add(spot);
+            
+            const point = new THREE.PointLight(0xec4899, 1, 20);
+            point.position.set(0, 2, 2);
+            scene.add(point);
+        }
+
+        function createEnvironment() {
+            // Laboratory Floor
+            const floorGeo = new THREE.PlaneGeometry(100, 20);
+            const floorMat = new THREE.MeshStandardMaterial({ 
+                color: 0x0f172a,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+            floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -1;
+            scene.add(floor);
+
+            // Grid
+            const grid = new THREE.GridHelper(100, 50, 0x1e293b, 0x1e293b);
+            grid.position.y = -0.99;
+            scene.add(grid);
+        }
+
+        function createTestObject() {
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: 0xec4899,
+                transparent: true,
+                opacity: 0.9,
+                shininess: 100
+            });
+            object = new THREE.Mesh(geometry, material);
+            scene.add(object);
+
+            // Velocity Vector Arrow
+            const dir = new THREE.Vector3(1, 0, 0);
+            const origin = new THREE.Vector3(0, 0, 0);
+            velocityArrow = new THREE.ArrowHelper(dir, origin, 0, 0x38bdf8, 0.5, 0.3);
+            scene.add(velocityArrow);
+        }
+
+        /**
+         * LOGIC
+         */
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Physics Update
+            if (velocity !== 0) {
+                position += velocity * 0.016; // 60fps approx
+                
+                // Wrap around world for continuous observation
+                if (position > WORLD_LIMIT) position = -WORLD_LIMIT;
+                if (position < -WORLD_LIMIT) position = WORLD_LIMIT;
+            }
+
+            // Sync 3D object
+            object.position.x = position;
+            
+            // Sync Arrow
+            velocityArrow.position.x = position;
+            velocityArrow.position.y = 1.5;
+            const arrowLength = Math.abs(velocity) * 0.5;
+            velocityArrow.setLength(arrowLength > 0.1 ? arrowLength : 0, 0.5, 0.2);
+            velocityArrow.setDirection(new THREE.Vector3(velocity >= 0 ? 1 : -1, 0, 0));
+
+            // Mass visual scaling (Law of Inertia - heavier things look 'bulkier')
+            const scale = 0.5 + (mass / 20) * 1.5;
+            object.scale.set(scale, scale, scale);
+            object.position.y = (scale * 2) / 2 - 1; // Keep on floor
+
+            // UI Update
+            document.getElementById('v-val').innerText = velocity.toFixed(1) + ' m/s';
+            
+            renderer.render(scene, camera);
+        }
+
+        /**
+         * INTERACTIONS
+         */
+        document.getElementById('mass-slider').addEventListener('input', (e) => {
+            mass = parseFloat(e.target.value);
+            document.getElementById('m-val').innerText = mass.toFixed(1) + ' kg';
+            document.getElementById('mass-label').innerText = mass.toFixed(0) + ' kg';
+        });
+
+        document.getElementById('pulse-btn').addEventListener('click', () => {
+            // Apply a force pulse: Δv = F*t / m
+            // For visual impact, we just add to velocity inversely to mass
+            const impulse = 20; 
+            velocity += impulse / mass;
+            
+            // Visual feedback on object
+            object.material.emissive.setHex(0xffffff);
+            setTimeout(() => object.material.emissive.setHex(0x000000), 100);
+        });
+
+        document.getElementById('stop-btn').addEventListener('click', () => {
+            velocity = 0;
+            position = 0;
+            object.position.x = 0;
+        });
+
+        // Responsive
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        window.onload = init;
+    </script>
+</body>
+</html>

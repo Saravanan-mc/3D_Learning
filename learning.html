@@ -1,0 +1,583 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProOS | STEM Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Specialized STEM Palette: Deep Research Blues */
+            --primary-bg: #fdfdfd;
+            --secondary-bg: #f0f7ff;
+            --accent-blue: #2563eb;
+            --accent-blue-hover: #1d4ed8;
+            --accent-blue-soft: #eff6ff;
+            --stem-math: #8b5cf6;
+            --stem-physics: #0ea5e9;
+            --stem-code: #10b981;
+            --stem-sql: #f59e0b; /* Amber for Data/SQL */
+            
+            /* Text Colors */
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-white: #ffffff;
+            
+            /* Glassmorphism Refined */
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --glass-stroke: rgba(37, 99, 235, 0.08);
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
+            --shadow-md: 0 12px 24px -8px rgba(37, 99, 235, 0.12);
+            --shadow-lg: 0 20px 32px -12px rgba(37, 99, 235, 0.15);
+            
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(210,100%,96%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 100%, hsla(220,100%,94%,1) 0, transparent 50%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: opacity 0.8s ease;
+
+        }
+
+        /* Ambient Science Blobs */
+        .ambient-blob {
+            position: fixed;
+            width: 35vw;
+            height: 35vw;
+            background: var(--accent-blue-soft);
+            filter: blur(100px);
+            z-index: -1;
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+        .blob-1 { top: -5%; left: -5%; animation: float 20s infinite alternate; }
+        .blob-2 { bottom: -5%; right: -5%; animation: float 25s infinite alternate-reverse; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(8%, 8%) scale(1.05); }
+        }
+
+        /* Status Bar */
+        .status-bar {
+            width: 100%;
+            height: 40px;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-stroke);
+            z-index: 1000;
+            position: sticky;
+            top: 0;
+            font-size: 0.85rem;
+        }
+
+        .time { font-weight: 700; color: var(--accent-blue); }
+        .system-status { display: flex; gap: 18px; align-items: center; color: var(--text-muted); }
+        .badge { background: var(--accent-blue-soft); color: var(--accent-blue); padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.7rem; }
+
+        /* Header Section */
+        .header {
+            padding: 50px 20px 10px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .header p { color: var(--text-muted); font-size: 1.1rem; font-weight: 400; }
+
+        /* Search Bar */
+        .search-container {
+            max-width: 540px;
+            margin: 25px auto 35px;
+            padding: 0 20px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            background: white;
+            border: 1px solid var(--glass-stroke);
+            border-radius: 16px;
+            padding: 14px 24px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+        }
+
+        .search-wrapper:focus-within {
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .search-wrapper i { color: var(--accent-blue); margin-right: 14px; font-size: 1.1rem; }
+        .search-wrapper input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            font-size: 1rem;
+            color: var(--text-main);
+            outline: none;
+            font-family: inherit;
+        }
+
+        /* Desktop Grid */
+        .desktop {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            padding: 0 40px 140px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .app-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 6px; height: 100%;
+            background: var(--category-color, var(--accent-blue));
+            opacity: 0.6;
+        }
+
+        .app-card:hover {
+            transform: translateY(-8px);
+            background: #fff;
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-blue-soft);
+        }
+
+        .app-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.08));
+        }
+
+        .app-card:hover .app-icon { transform: scale(1.1) rotate(3deg); }
+
+        .app-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+            text-align: center;
+        }
+
+        .app-category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        /* Dock */
+        .dock-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+
+        .dock {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            padding: 10px;
+            border-radius: 22px;
+            display: flex;
+            gap: 10px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .dock-item {
+            width: 52px;
+            height: 52px;
+            background: white;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            color: var(--text-muted);
+        }
+
+        .dock-item:hover {
+            transform: translateY(-12px) scale(1.1);
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        /* SQL Terminal UI */
+        #sql-terminal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%;
+            max-width: 800px;
+            height: 500px;
+            background: #1e293b;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #334155;
+            transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        #sql-terminal.open {
+            display: flex;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .terminal-header {
+            background: #0f172a;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #94a3b8;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+        }
+
+        .terminal-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .terminal-input-line {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .prompt { color: #10b981; }
+
+        .terminal-input {
+            background: transparent;
+            border: none;
+            color: #f59e0b;
+            flex: 1;
+            outline: none;
+            font-family: inherit;
+            font-size: inherit;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            width: 12px;
+            height: 12px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 60px;
+            right: 24px;
+            background: white;
+            padding: 14px 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--accent-blue);
+            transform: translateX(130%);
+            transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast.show { transform: translateX(0); }
+        .toast-content b { color: var(--accent-blue); font-size: 0.85rem; }
+        .toast-content p { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* Helpers */
+        .hidden { display: none !important; }
+
+        @media (max-width: 600px) {
+            .desktop { grid-template-columns: 1fr; padding: 0 20px 120px; }
+            .header h1 { font-size: 2rem; }
+            .dock { gap: 6px; padding: 8px; }
+            .dock-item { width: 44px; height: 44px; font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+
+    <div class="status-bar">
+        <div class="time" id="clock">00:00:00</div>
+        <div class="system-status">
+            <span class="badge">STEM CORE v4.2</span>
+            <i class="fas fa-database" title="DB Connected"></i>
+            <i class="fas fa-microchip" title="CPU: 8%"></i>
+            <i class="fas fa-wifi"></i>
+        </div>
+    </div>
+
+    <header class="header">
+        <h1>Research Terminal</h1>
+        <p>Unified Computational & Scientific Workspace</p>
+    </header>
+
+    <div class="search-container">
+        <div class="search-wrapper">
+            <i class="fas fa-terminal"></i>
+            <input type="text" id="appSearch" placeholder="Execute command or search pillars...">
+        </div>
+    </div>
+
+    <main class="desktop" id="desktop">
+        <!-- Pillars injected here -->
+    </main>
+
+    <!-- SQL Terminal Overlay -->
+    <div id="sql-terminal">
+        <div class="terminal-header">
+            <span><i class="fas fa-database"></i> SQL Engine v1.0.4</span>
+            <div class="close-btn" onclick="toggleSQL()"></div>
+        </div>
+        <div class="terminal-body" id="term-body">
+            <div>Type <span style="color: #f59e0b;">'HELP'</span> to see available commands.</div>
+            <div>Connected to: <span style="color: #10b981;">production_stem_db</span></div>
+        </div>
+        <div class="terminal-input-line" style="padding: 0 20px 20px;">
+            <span class="prompt">SQL></span>
+            <input type="text" class="terminal-input" id="sql-input" placeholder="SELECT * FROM students...">
+        </div>
+    </div>
+
+    <div class="dock-container">
+    <nav class="dock">
+        <div class="dock-item" title="Dashboard"><i class="fas fa-th-large"></i></div>
+        <a href="voice/index.html" target="_blank" style="text-decoration: none;">
+            <div class="dock-item" title="SQL Query"><i class="fas fa-database"></i></div>
+        </a>
+        <div class="dock-item" title="Cloud Server"><i class="fas fa-server"></i></div>
+        <div class="dock-item" title="Settings"><i class="fas fa-cog"></i></div>
+    </nav>
+</div>
+
+
+    <div id="toast" class="toast">
+        <div class="toast-icon">
+            <i class="fas fa-circle-notch fa-spin" style="color: var(--accent-blue);"></i>
+        </div>
+        <div class="toast-content">
+            <b id="toast-title">System Hook</b>
+            <p id="toast-message">Initializing kernel...</p>
+        </div>
+    </div>
+
+    <script>
+        const appList = [
+            { 
+                name: "Programming Hub", 
+                cat: "Programming", 
+                icon: "💎", 
+                link: "programing/pro.html", 
+                color: "#10b981" 
+            },
+            { 
+                name: "SQL & Databases", 
+                cat: "Data Science", 
+                icon: "🗄️", 
+                link: "voice/index.html", 
+                color: "#f59e0b",
+                // isAction: true,
+                // action: 'toggleSQL'
+            },
+            { 
+                name: "Physics Dynamics", 
+                cat: "Physics", 
+                icon: "⚛️", 
+                link: "physics/index.html", 
+                color: "#0ea5e9" 
+            },
+            { 
+                name: "Mathematics Engine", 
+                cat: "Mathematics", 
+                icon: "📈", 
+                link: "math/math.html", 
+                color: "#8b5cf6" 
+            }
+        ];
+
+        const desktop = document.getElementById('desktop');
+        const searchInput = document.getElementById('appSearch');
+        const clockElement = document.getElementById('clock');
+        const toast = document.getElementById('toast');
+        const sqlTerminal = document.getElementById('sql-terminal');
+        const sqlInput = document.getElementById('sql-input');
+        const termBody = document.getElementById('term-body');
+
+       function initApps() {
+    desktop.innerHTML = appList.map((app, index) => {
+        // Force every link to open in a new tab
+        return `
+        <a href="${app.link}" target="_blank" class="app-card" 
+           style="--category-color: ${app.color}; animation: fadeIn 0.4s ease forwards ${index * 0.1}s" 
+           onclick="launchFeedback('${app.name}', '${app.cat}')">
+            <div class="app-icon">${app.icon}</div>
+            <div class="app-name">${app.name}</div>
+            <div class="app-category">${app.cat}</div>
+        </a>
+    `}).join('');
+}
+
+        function toggleSQL() {
+            sqlTerminal.classList.toggle('open');
+            if (sqlTerminal.classList.contains('open')) {
+                sqlInput.focus();
+                showToast("SQL Engine", "Relational database environment active.");
+            }
+        }
+
+        // Mock SQL Logic
+        sqlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = sqlInput.value.trim();
+                const output = document.createElement('div');
+                output.style.marginTop = '10px';
+                
+                if (cmd.toLowerCase().includes('select')) {
+                    output.innerHTML = `<span style="color: #94a3b8;">Querying...</span><br>
+                                       <table style="width: 100%; border-collapse: collapse; margin-top: 5px; color: #fff;">
+                                          <tr style="border-bottom: 1px solid #334155;"><th>id</th><th>name</th><th>field</th></tr>
+                                          <tr><td>001</td><td>Dr. Quantum</td><td>Physics</td></tr>
+                                          <tr><td>002</td><td>Ada L.</td><td>Logic</td></tr>
+                                       </table>`;
+                } else if (cmd.toLowerCase() === 'help') {
+                    output.innerHTML = `<span style="color: #94a3b8;">Commands: SELECT, UPDATE, INSERT, DESCRIBE, CLEAR</span>`;
+                } else if (cmd.toLowerCase() === 'clear') {
+                    termBody.innerHTML = '<div>Terminal cleared. SQL Engine ready.</div>';
+                    sqlInput.value = '';
+                    return;
+                } else {
+                    output.innerHTML = `<span style="color: #ef4444;">Syntax Error:</span> Unexpected token near '${cmd.split(' ')[0]}'`;
+                }
+
+                const cmdEcho = document.createElement('div');
+                cmdEcho.innerHTML = `<span class="prompt">SQL></span> <span style="color: #f59e0b;">${cmd}</span>`;
+                termBody.appendChild(cmdEcho);
+                termBody.appendChild(output);
+                termBody.scrollTop = termBody.scrollHeight;
+                sqlInput.value = '';
+            }
+        });
+
+        function updateClock() {
+            const now = new Date();
+            clockElement.textContent = now.toLocaleTimeString('en-GB', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false 
+            });
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.app-card').forEach(card => {
+                const name = card.querySelector('.app-name').textContent.toLowerCase();
+                const cat = card.querySelector('.app-category').textContent.toLowerCase();
+                card.classList.toggle('hidden', !(name.includes(term) || cat.includes(term)));
+            });
+        });
+
+        function launchFeedback(name, category) {
+            const messages = {
+                'Programming': 'Allocating memory and loading compiler...',
+                'Physics': 'Initializing physics engine and constants...',
+                'Mathematics': 'Loading symbolic computation kernel...',
+                'Data Science': 'Parsing relational schema...'
+            };
+            
+            showToast(name, messages[category] || 'Booting environment...');
+        }
+
+        function showToast(title, msg) {
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-message').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        window.onload = () => {
+            initApps();
+            updateClock();
+            setInterval(updateClock, 1000);
+        };
+    </script>
+</body>
+</html>

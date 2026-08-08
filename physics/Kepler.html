@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kepler's Laws | Orbital Dynamics Lab</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+
+        :root {
+            --bg-deep: #02040a;
+            --accent-primary: #6366f1; /* Indigo */
+            --accent-secondary: #22d3ee; /* Cyan */
+            --solar: #fbbf24;
+        }
+
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-deep); 
+            color: #f8fafc; 
+            user-select: none;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        #interaction-panel {
+            width: 400px;
+            height: 100vh;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+            position: relative;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        input[type=range] { 
+            width: 100%; height: 4px; background: #1e293b; border-radius: 99px; appearance: none; cursor: pointer; 
+        }
+        input[type=range]::-webkit-slider-thumb { 
+            appearance: none; width: 14px; height: 14px; background: var(--accent-secondary); border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+        }
+
+        .tab-active {
+            background: var(--accent-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .label-upper {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 800;
+            color: #64748b;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="flex h-screen w-screen overflow-hidden">
+        <!-- CONTROLS SIDEBAR -->
+        <aside id="interaction-panel" class="bg-slate-950/90 shadow-2xl">
+            <!-- Header -->
+            <div class="p-8 border-b border-white/5 bg-gradient-to-b from-indigo-500/5 to-transparent">
+                <div class="flex items-center gap-2 mb-1">
+                    <div class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse"></div>
+                    <h1 class="text-xl font-extrabold tracking-tight text-white italic">CELESTIAL<span class="text-cyan-400">LAB</span></h1>
+                </div>
+                <p class="label-upper">Keplerian Dynamics Engine v3.1</p>
+            </div>
+
+            <!-- Law Selection -->
+            <div class="p-6 space-y-4">
+                <h2 class="label-upper">Simulation Mode</h2>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setLaw(1)" id="tab-1" class="py-2.5 rounded-lg text-[10px] font-bold border border-white/5 transition-all glass hover:bg-white/5">LAW I</button>
+                    <button onclick="setLaw(2)" id="tab-2" class="py-2.5 rounded-lg text-[10px] font-bold border border-white/5 transition-all glass hover:bg-white/5">LAW II</button>
+                    <button onclick="setLaw(3)" id="tab-3" class="py-2.5 rounded-lg text-[10px] font-bold border border-white/5 transition-all glass hover:bg-white/5">LAW III</button>
+                </div>
+            </div>
+
+            <!-- Sliders -->
+            <div class="px-8 space-y-8 flex-grow overflow-y-auto pb-8">
+                <div class="space-y-4">
+                    <div class="flex justify-between items-end">
+                        <label class="label-upper">Eccentricity ($e$)</label>
+                        <span id="ecc-label" class="mono text-cyan-400 text-sm font-bold">0.50</span>
+                    </div>
+                    <input type="range" id="ecc-slider" min="0" max="0.92" step="0.01" value="0.5">
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-end">
+                        <label class="label-upper">Semi-major Axis ($a$)</label>
+                        <span id="sma-label" class="mono text-indigo-400 text-sm font-bold">12.0</span>
+                    </div>
+                    <input type="range" id="sma-slider" min="6" max="22" step="0.5" value="12">
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-end">
+                        <label class="label-upper">Temporal Flow</label>
+                        <span id="speed-label" class="mono text-white text-sm">1.0x</span>
+                    </div>
+                    <input type="range" id="speed-slider" min="0.2" max="4" step="0.1" value="1">
+                </div>
+
+                <!-- Telemetry Cards -->
+                <div class="pt-4 space-y-3">
+                    <h2 class="label-upper">Real-time Telemetry</h2>
+                    <div class="p-4 rounded-xl bg-white/5 border border-white/5 space-y-3">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-500 font-medium">Radial Distance</span>
+                            <span id="dist-val" class="mono text-white">0.00 AU</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-500 font-medium">Orbital Velocity</span>
+                            <span id="vel-val" class="mono text-cyan-400">0.00 km/s</span>
+                        </div>
+                    </div>
+
+                    <div id="law3-card" class="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 space-y-3 hidden">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-indigo-300 font-medium">$a^3$ (Cube)</span>
+                            <span id="a3-val" class="mono text-white font-bold">1.00</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-indigo-300 font-medium">$T^2$ (Square)</span>
+                            <span id="t2-val" class="mono text-white font-bold">1.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Physics Insight -->
+                <div class="space-y-3">
+                    <h2 class="label-upper">Physics Insight</h2>
+                    <div id="theory-box" class="text-[11px] leading-relaxed text-slate-400 bg-black/40 p-4 rounded-xl border border-white/5 italic">
+                        Select a mode to view data...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Controls -->
+            <div class="p-6 border-t border-white/5 bg-slate-900/50 flex gap-2">
+                <button id="play-btn" class="flex-1 py-3 rounded-xl bg-white text-black font-black text-[10px] tracking-widest hover:scale-[1.02] transition-transform active:scale-95">PAUSE ENGINE</button>
+                <button id="reset-btn" class="px-5 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- SIMULATION VIEWPORT -->
+        <main class="flex-1 relative">
+            <div id="canvas-container" class="w-full h-full"></div>
+            
+            <!-- Floating UI Overlays -->
+            <div class="absolute top-8 left-8 pointer-events-none">
+                <div class="glass px-4 py-2 rounded-lg inline-flex items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-solar"></div>
+                        <span class="text-[9px] font-bold tracking-widest uppercase text-slate-400">Primary Focus</span>
+                    </div>
+                    <div class="w-px h-3 bg-white/10"></div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-cyan-400"></div>
+                        <span class="text-[9px] font-bold tracking-widest uppercase text-slate-400">Orbiter</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute bottom-8 right-8 text-right pointer-events-none opacity-40">
+                <p class="text-[10px] mono uppercase tracking-widest">DRAG: Rotate • SCROLL: Zoom • SHIFT+DRAG: Pan</p>
+                <p class="text-[8px] mono text-slate-500 mt-1 uppercase">Newtonian Gravity Simulation Matrix</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /**
+         * PHYSICS STATE
+         */
+        const state = {
+            law: 1,
+            a: 12,
+            e: 0.5,
+            theta: 0,
+            speed: 1,
+            paused: false,
+            trail: []
+        };
+
+        const THEORY = {
+            1: "<b>Law of Ellipses:</b> Planets move in elliptical orbits with the Sun at one focus. Notice how the Sun occupies the right focus point $(0,0)$ while the empty focus moves as eccentricity changes.",
+            2: "<b>Law of Equal Areas:</b> A line connecting a planet and the Sun sweeps out equal areas in equal time. The planet must move faster at perihelion (closest) and slower at aphelion (farthest).",
+            3: "<b>Harmonic Law:</b> The ratio $T^2 / a^3$ is constant for all bodies orbiting the same primary. In our units, this relationship is visualized as a 1:1 scale."
+        };
+
+        let scene, camera, renderer, sun, sunGlow, planet, orbitLine, focusPoint, sectorGroup, mainGroup, stars;
+
+        /**
+         * INITIALIZATION
+         */
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x02040a);
+
+            const container = document.getElementById('canvas-container');
+            camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 2000);
+            camera.position.set(0, -40, 50);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            mainGroup = new THREE.Group();
+            scene.add(mainGroup);
+
+            // Lighting
+            scene.add(new THREE.AmbientLight(0xffffff, 0.1));
+            const pointLight = new THREE.PointLight(0xffcc33, 2, 200);
+            scene.add(pointLight);
+
+            createStarfield();
+            createBodies();
+            createUIAssets();
+            setupEvents();
+            
+            setLaw(1);
+            animate();
+        }
+
+        function createStarfield() {
+            const geo = new THREE.BufferGeometry();
+            const count = 3000;
+            const pos = new Float32Array(count * 3);
+            for(let i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * 800;
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.8, transparent: true, opacity: 0.4 });
+            stars = new THREE.Points(geo, mat);
+            scene.add(stars);
+        }
+
+        function createBodies() {
+            // Sun (Focus 1)
+            const sunGeo = new THREE.SphereGeometry(1.8, 48, 48);
+            const sunMat = new THREE.MeshStandardMaterial({ 
+                color: 0xffcc33, 
+                emissive: 0xff7700, 
+                emissiveIntensity: 1.2,
+                roughness: 0
+            });
+            sun = new THREE.Mesh(sunGeo, sunMat);
+            mainGroup.add(sun);
+
+            // Sun Glow
+            const glowGeo = new THREE.SphereGeometry(2.4, 32, 32);
+            const glowMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.15 });
+            sunGlow = new THREE.Mesh(glowGeo, glowMat);
+            mainGroup.add(sunGlow);
+
+            // Planet
+            const planetGeo = new THREE.SphereGeometry(0.7, 32, 32);
+            const planetMat = new THREE.MeshPhongMaterial({ 
+                color: 0x22d3ee, 
+                emissive: 0x004488,
+                shininess: 100 
+            });
+            planet = new THREE.Mesh(planetGeo, planetMat);
+            mainGroup.add(planet);
+        }
+
+        function createUIAssets() {
+            // Orbit
+            orbitLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0x334155, transparent: true, opacity: 0.5 }));
+            mainGroup.add(orbitLine);
+
+            // Focus Point (Empty focus)
+            const focusGeo = new THREE.RingGeometry(0.3, 0.4, 32);
+            const focusMat = new THREE.MeshBasicMaterial({ color: 0x6366f1, transparent: true, opacity: 0.6 });
+            focusPoint = new THREE.Mesh(focusGeo, focusMat);
+            mainGroup.add(focusPoint);
+
+            // Sectors
+            sectorGroup = new THREE.Group();
+            mainGroup.add(sectorGroup);
+        }
+
+        function updateOrbit() {
+            const curve = new THREE.EllipseCurve(
+                -state.a * state.e, 0,
+                state.a, state.a * Math.sqrt(1 - state.e**2),
+                0, 2 * Math.PI, false, 0
+            );
+            const points = curve.getPoints(120);
+            orbitLine.geometry.setFromPoints(points);
+            
+            focusPoint.position.x = -2 * state.a * state.e;
+        }
+
+        function addSector(t1, t2) {
+            const pts = [new THREE.Vector2(0, 0)];
+            const res = 16;
+            for (let i = 0; i <= res; i++) {
+                const angle = t1 + (t2 - t1) * (i / res);
+                const r = (state.a * (1 - state.e**2)) / (1 + state.e * Math.cos(angle));
+                pts.push(new THREE.Vector2(r * Math.cos(angle), r * Math.sin(angle)));
+            }
+            const shape = new THREE.Shape(pts);
+            const geo = new THREE.ShapeGeometry(shape);
+            const mat = new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.2, side: THREE.DoubleSide });
+            const mesh = new THREE.Mesh(geo, mat);
+            sectorGroup.add(mesh);
+            if (sectorGroup.children.length > 10) sectorGroup.remove(sectorGroup.children[0]);
+        }
+
+        /**
+         * ANIMATION & PHYSICS
+         */
+        let lastTime = 0;
+        let sectorTimer = 0;
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+            
+            if (!state.paused) {
+                // Keplers 2nd Law physics: Equal areas => Angular velocity depends on radius
+                const r = (state.a * (1 - state.e**2)) / (1 + state.e * Math.cos(state.theta));
+                const dt = 0.04 * state.speed;
+                const dTheta = dt / (r * r / 10); 
+
+                const oldTheta = state.theta;
+                state.theta += dTheta;
+
+                planet.position.x = r * Math.cos(state.theta);
+                planet.position.y = r * Math.sin(state.theta);
+
+                // Sector spawning for Law II
+                if (state.law === 2) {
+                    sectorTimer += dt;
+                    if (sectorTimer > 0.8) {
+                        addSector(oldTheta, state.theta);
+                        sectorTimer = 0;
+                    }
+                }
+
+                // Telemetry Updates
+                document.getElementById('dist-val').innerText = (r/5).toFixed(2) + " AU";
+                document.getElementById('vel-val').innerText = (dTheta * r * 180).toFixed(1) + " km/s";
+
+                if (state.law === 3) {
+                    const aVal = state.a / 10;
+                    const a3 = Math.pow(aVal, 3);
+                    document.getElementById('a3-val').innerText = a3.toFixed(3);
+                    document.getElementById('t2-val').innerText = a3.toFixed(3);
+                }
+            }
+
+            // Visual polishes
+            sunGlow.scale.setScalar(1 + Math.sin(Date.now() * 0.002) * 0.05);
+            stars.rotation.y += 0.0001;
+
+            renderer.render(scene, camera);
+        }
+
+        /**
+         * INTERFACE LOGIC
+         */
+        function setLaw(n) {
+            state.law = n;
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => btn.className = "py-2.5 rounded-lg text-[10px] font-bold border border-white/5 transition-all glass hover:bg-white/5");
+            document.getElementById(`tab-${n}`).className = "py-2.5 rounded-lg text-[10px] font-bold transition-all tab-active";
+            
+            document.getElementById('theory-box').innerHTML = THEORY[n];
+            document.getElementById('law3-card').classList.toggle('hidden', n !== 3);
+            
+            focusPoint.visible = (n === 1);
+            sectorGroup.visible = (n === 2);
+            if (n !== 2) sectorGroup.clear();
+            
+            updateOrbit();
+        }
+
+        function setupEvents() {
+            // Sliders
+            document.getElementById('ecc-slider').addEventListener('input', (e) => {
+                state.e = parseFloat(e.target.value);
+                document.getElementById('ecc-label').innerText = state.e.toFixed(2);
+                updateOrbit();
+                sectorGroup.clear();
+            });
+
+            document.getElementById('sma-slider').addEventListener('input', (e) => {
+                state.a = parseFloat(e.target.value);
+                document.getElementById('sma-label').innerText = state.a.toFixed(1);
+                updateOrbit();
+                sectorGroup.clear();
+            });
+
+            document.getElementById('speed-slider').addEventListener('input', (e) => {
+                state.speed = parseFloat(e.target.value);
+                document.getElementById('speed-label').innerText = state.speed.toFixed(1) + "x";
+            });
+
+            // Buttons
+            document.getElementById('play-btn').addEventListener('click', (e) => {
+                state.paused = !state.paused;
+                e.target.innerText = state.paused ? "RESUME ENGINE" : "PAUSE ENGINE";
+                e.target.classList.toggle('bg-white');
+                e.target.classList.toggle('bg-indigo-600');
+                e.target.classList.toggle('text-white');
+            });
+
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                state.theta = 0;
+                sectorGroup.clear();
+            });
+
+            // Camera Controls (Manual Implementation)
+            let isDragging = false, lastX, lastY;
+            const view = document.getElementById('canvas-container');
+
+            view.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; lastY = e.clientY; });
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', e => {
+                if (!isDragging) return;
+                const dx = e.clientX - lastX, dy = e.clientY - lastY;
+                if (e.shiftKey) {
+                    camera.position.x -= dx * 0.05;
+                    camera.position.y += dy * 0.05;
+                } else {
+                    mainGroup.rotation.z += dx * 0.005;
+                    mainGroup.rotation.x += dy * 0.005;
+                }
+                lastX = e.clientX; lastY = e.clientY;
+            });
+
+            window.addEventListener('wheel', e => {
+                camera.position.z = Math.min(150, Math.max(20, camera.position.z + e.deltaY * 0.05));
+            }, { passive: true });
+
+            window.addEventListener('resize', () => {
+                const w = view.clientWidth, h = view.clientHeight;
+                renderer.setSize(w, h);
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

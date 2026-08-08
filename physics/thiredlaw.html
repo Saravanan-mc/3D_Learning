@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newton's Third Law - Action & Reaction Lab</title>
+    <!-- Three.js for 3D Rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Tailwind CSS for UI Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: #020617; 
+            color: white; 
+            user-select: none;
+        }
+        #canvas-container { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+        }
+        .ui-overlay { 
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            z-index: 10; 
+            pointer-events: none; 
+        }
+        .controls { 
+            position: absolute; 
+            bottom: 30px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 10; 
+            width: 90%; 
+            max-width: 600px; 
+        }
+        .glass { 
+            background: rgba(15, 23, 42, 0.75); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 20px; 
+            pointer-events: auto; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+        input[type=range] { 
+            width: 100%; 
+            height: 6px; 
+            background: #1e293b; 
+            border-radius: 4px; 
+            appearance: none; 
+            cursor: pointer; 
+        }
+        input[type=range]::-webkit-slider-thumb { 
+            appearance: none; 
+            width: 18px; 
+            height: 18px; 
+            background: #f43f5e; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            border: 2px solid #f8fafc;
+        }
+        .law-formula { 
+            font-family: 'Times New Roman', serif;
+            letter-spacing: 0.1em;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay: Law Definition & Stats -->
+    <div class="ui-overlay space-y-4 max-w-[280px] md:max-w-md">
+        <div class="glass p-6">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-rose-400 to-orange-500 bg-clip-text text-transparent">Newton's Third Law</h1>
+            <p class="text-slate-400 text-[10px] mb-4 uppercase tracking-[0.2em]">Action & Reaction Pairs</p>
+            
+            <div class="law-formula text-3xl font-bold text-center py-4 border-y border-slate-700/50">
+                <span class="text-rose-400">F<sub>A</sub></span> = 
+                <span class="text-white">-</span>
+                <span class="text-sky-400">F<sub>B</sub></span>
+            </div>
+            <p class="text-[10px] text-center text-slate-500 mt-2 uppercase">Every action has an equal and opposite reaction.</p>
+        </div>
+
+        <div class="glass p-5 grid grid-cols-2 gap-4 text-xs">
+            <div class="space-y-2 border-r border-slate-700 pr-2">
+                <p class="font-bold text-rose-400 uppercase tracking-tighter">Object A (Left)</p>
+                <div class="flex justify-between"><span>Mass:</span> <span id="ma-val">5.0kg</span></div>
+                <div class="flex justify-between"><span>Velocity:</span> <span id="va-val">0.0m/s</span></div>
+            </div>
+            <div class="space-y-2 pl-2">
+                <p class="font-bold text-sky-400 uppercase tracking-tighter">Object B (Right)</p>
+                <div class="flex justify-between"><span>Mass:</span> <span id="mb-val">5.0kg</span></div>
+                <div class="flex justify-between"><span>Velocity:</span> <span id="vb-val">0.0m/s</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Controls Panel -->
+    <div class="controls glass p-6 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-3">
+                <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <span>Mass of Object A</span>
+                    <span class="text-rose-400" id="ma-label">5 kg</span>
+                </div>
+                <input type="range" id="ma-slider" min="1" max="20" step="1" value="5">
+            </div>
+            
+            <div class="space-y-3">
+                <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <span>Mass of Object B</span>
+                    <span class="text-sky-400" id="mb-label">5 kg</span>
+                </div>
+                <input type="range" id="mb-slider" min="1" max="20" step="1" value="5">
+            </div>
+        </div>
+        
+        <div class="flex gap-4">
+            <button id="push-btn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl transition-all uppercase text-xs shadow-lg shadow-rose-900/20">Trigger Mutual Push</button>
+            <button id="reset-btn" class="w-1/3 border border-slate-600 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition-all uppercase text-xs">Reset</button>
+        </div>
+
+        <div class="flex justify-between items-center text-[9px] text-slate-500 uppercase tracking-widest">
+            <span>Pairs occur simultaneously on different objects</span>
+            <span class="flex items-center gap-1">
+                <span class="w-2 h-2 bg-rose-500 rounded-full"></span> Action
+                <span class="w-2 h-2 bg-sky-500 rounded-full ml-2"></span> Reaction
+            </span>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * PHYSICS STATE
+         */
+        let state = {
+            a: { mass: 5.0, vel: 0, pos: -4, color: 0xf43f5e },
+            b: { mass: 5.0, vel: 0, pos: 4, color: 0x0ea5e9 }
+        };
+        
+        const WORLD_LIMIT = 25;
+
+        /**
+         * THREE.JS SETUP
+         */
+        let scene, camera, renderer, objA, objB, arrowA, arrowB;
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020617);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 15);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            addLighting();
+            createEnvironment();
+            createObjects();
+            
+            animate();
+        }
+
+        function addLighting() {
+            const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambient);
+            const spot = new THREE.PointLight(0xffffff, 1, 50);
+            spot.position.set(0, 10, 5);
+            scene.add(spot);
+        }
+
+        function createEnvironment() {
+            const floorGeo = new THREE.PlaneGeometry(100, 20);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.6, roughness: 0.4 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -1;
+            scene.add(floor);
+
+            const grid = new THREE.GridHelper(100, 40, 0x1e293b, 0x0f172a);
+            grid.position.y = -0.99;
+            scene.add(grid);
+        }
+
+        function createObjects() {
+            const geo = new THREE.BoxGeometry(2, 2, 2);
+            
+            objA = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: state.a.color }));
+            objB = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: state.b.color }));
+            
+            scene.add(objA);
+            scene.add(objB);
+
+            // Action Arrow (Attached to A, pointing towards B's reaction)
+            arrowA = new THREE.ArrowHelper(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 0, 0), 0, state.a.color, 0.5, 0.3);
+            // Reaction Arrow (Attached to B, pointing away)
+            arrowB = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 0, state.b.color, 0.5, 0.3);
+            
+            scene.add(arrowA);
+            scene.add(arrowB);
+        }
+
+        /**
+         * ANIMATION
+         */
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Physics step (v = constant after impulse)
+            state.a.pos += state.a.vel * 0.016;
+            state.b.pos += state.b.vel * 0.016;
+
+            // Boundaries
+            if (state.a.pos < -WORLD_LIMIT) state.a.pos = WORLD_LIMIT;
+            if (state.b.pos > WORLD_LIMIT) state.b.pos = -WORLD_LIMIT;
+
+            // Update 3D
+            const scaleA = 0.5 + (state.a.mass / 20) * 1.2;
+            const scaleB = 0.5 + (state.b.mass / 20) * 1.2;
+            
+            objA.scale.set(scaleA, scaleA, scaleA);
+            objB.scale.set(scaleB, scaleB, scaleB);
+            
+            objA.position.set(state.a.pos, (scaleA * 2)/2 - 1, 0);
+            objB.position.set(state.b.pos, (scaleB * 2)/2 - 1, 0);
+
+            // Arrows sync - show momentum direction
+            arrowA.position.copy(objA.position).add(new THREE.Vector3(0, 2, 0));
+            arrowB.position.copy(objB.position).add(new THREE.Vector3(0, 2, 0));
+            arrowA.setLength(Math.abs(state.a.vel) * 0.5, 0.4, 0.2);
+            arrowB.setLength(Math.abs(state.b.vel) * 0.5, 0.4, 0.2);
+            arrowA.visible = Math.abs(state.a.vel) > 0.01;
+            arrowB.visible = Math.abs(state.b.vel) > 0.01;
+
+            // UI
+            document.getElementById('ma-val').innerText = state.a.mass.toFixed(1) + 'kg';
+            document.getElementById('mb-val').innerText = state.b.mass.toFixed(1) + 'kg';
+            document.getElementById('va-val').innerText = state.a.vel.toFixed(1) + 'm/s';
+            document.getElementById('vb-val').innerText = state.b.vel.toFixed(1) + 'm/s';
+
+            renderer.render(scene, camera);
+        }
+
+        /**
+         * LOGIC
+         */
+        document.getElementById('push-btn').addEventListener('click', () => {
+            // Apply a mutual force (Pushing apart)
+            // The push exertes an equal Impulse I on both objects in opposite directions
+            const impulse = 20; 
+            
+            // v_f = v_i + Impulse/mass
+            state.a.vel -= impulse / state.a.mass;
+            state.b.vel += impulse / state.b.mass;
+            
+            // Visual feedback - glow momentarily on interaction
+            objA.material.emissive.setHex(0x444444);
+            objB.material.emissive.setHex(0x444444);
+            setTimeout(() => {
+                objA.material.emissive.setHex(0x000000);
+                objB.material.emissive.setHex(0x000000);
+            }, 100);
+        });
+
+        document.getElementById('ma-slider').addEventListener('input', (e) => {
+            state.a.mass = parseFloat(e.target.value);
+            document.getElementById('ma-label').innerText = state.a.mass + ' kg';
+        });
+
+        document.getElementById('mb-slider').addEventListener('input', (e) => {
+            state.b.mass = parseFloat(e.target.value);
+            document.getElementById('mb-label').innerText = state.b.mass + ' kg';
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            state.a.vel = 0; state.a.pos = -4;
+            state.b.vel = 0; state.b.pos = 4;
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        window.onload = init;
+    </script>
+</body>
+</html>

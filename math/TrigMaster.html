@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trigonometry | Visual Master Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #f8fafc; 
+            color: #1e293b; 
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .math-font { font-family: 'Fira Code', monospace; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.05); }
+        .card { background: white; border-radius: 1.5rem; padding: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); transition: all 0.3s ease; }
+        .card:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        
+        #three-container { cursor: move; border-radius: 1rem; overflow: hidden; background: #0f172a; }
+        
+        input[type="range"] { accent-color: #6366f1; }
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="pb-20 selection:bg-indigo-100">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass px-6 py-4 flex justify-between items-center border-b border-slate-100">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-bold text-xl text-white">θ</div>
+            <h1 class="text-xl font-black tracking-tighter text-slate-900">Trig<span class="text-indigo-500">Master</span></h1>
+        </div>
+        <div class="hidden md:flex space-x-6 text-xs font-bold uppercase tracking-widest text-slate-500">
+            <a href="#ratios" class="hover:text-indigo-500 transition">Ratios</a>
+            <a href="#unit-circle" class="hover:text-indigo-500 transition">Unit Circle</a>
+            <a href="#graphs" class="hover:text-indigo-500 transition">Waves</a>
+            <a href="#three-d" class="hover:text-indigo-500 transition">3D Trig</a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="pt-32 pb-16 px-6 text-center bg-white border-b border-slate-100 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 30px 30px;"></div>
+        <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tight text-slate-900 relative z-10">
+            Mastering <span class="text-indigo-500">Trigonometry</span>
+        </h2>
+        <p class="text-slate-500 text-lg max-w-2xl mx-auto mb-8 relative z-10">
+            Explore the relationship between triangle side lengths and angles. From the basic SOH CAH TOA to complex 3D periodic waves.
+        </p>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 mt-12 space-y-16">
+
+        <!-- 1. Trigonometric Ratios (SOH CAH TOA) -->
+        <section id="ratios" class="scroll-mt-24">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">1</div>
+                <h3 class="text-3xl font-bold text-slate-900">The Core Ratios</h3>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="card space-y-6">
+                    <h4 class="text-xl font-bold text-slate-900">SOH CAH TOA</h4>
+                    <p class="text-slate-600 leading-relaxed text-sm">
+                        In a right-angled triangle, we use these ratios to find missing sides or angles:
+                    </p>
+                    <div class="space-y-3">
+                        <div class="p-4 bg-indigo-50 rounded-xl border-l-4 border-indigo-500">
+                            <span class="font-bold">Sine (sin θ)</span> = Opposite / Hypotenuse
+                        </div>
+                        <div class="p-4 bg-emerald-50 rounded-xl border-l-4 border-emerald-500">
+                            <span class="font-bold">Cosine (cos θ)</span> = Adjacent / Hypotenuse
+                        </div>
+                        <div class="p-4 bg-orange-50 rounded-xl border-l-4 border-orange-500">
+                            <span class="font-bold">Tangent (tan θ)</span> = Opposite / Adjacent
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card flex flex-col items-center">
+                    <canvas id="ratio-canvas" width="300" height="200" class="mb-6"></canvas>
+                    <div class="w-full space-y-4">
+                        <label class="text-[10px] font-bold uppercase text-slate-400 block">Adjust Angle (θ)</label>
+                        <input type="range" id="ratio-angle" min="5" max="85" value="30" class="w-full">
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+                            <div class="p-2 bg-slate-50 rounded">Sin: <span id="sin-val" class="text-indigo-600">0.50</span></div>
+                            <div class="p-2 bg-slate-50 rounded">Cos: <span id="cos-val" class="text-emerald-600">0.87</span></div>
+                            <div class="p-2 bg-slate-50 rounded">Tan: <span id="tan-val" class="text-orange-600">0.58</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. The Unit Circle -->
+        <section id="unit-circle" class="scroll-mt-24">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">2</div>
+                <h3 class="text-3xl font-bold text-slate-900">The Unit Circle</h3>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="card flex flex-col items-center justify-center">
+                    <canvas id="unit-circle-canvas" width="300" height="300" class="mb-4"></canvas>
+                    <input type="range" id="unit-angle" min="0" max="360" value="45" class="w-full mb-4">
+                    <div class="text-center">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Current Angle</span>
+                        <div id="unit-angle-text" class="text-4xl font-black text-indigo-600">45°</div>
+                    </div>
+                </div>
+
+                <div class="card space-y-6">
+                    <h4 class="text-xl font-bold">Coordinates (x, y)</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        In a circle with radius 1, the position of any point is defined by:
+                        <br><strong>x = cos θ</strong> and <strong>y = sin θ</strong>.
+                    </p>
+                    <div class="p-6 bg-slate-900 rounded-2xl text-white shadow-xl">
+                        <div class="math-font text-2xl">
+                            P = (<span id="unit-x" class="text-emerald-400">0.707</span>, <span id="unit-y" class="text-indigo-400">0.707</span>)
+                        </div>
+                        <div class="mt-4 flex space-x-4 text-[10px] uppercase font-bold tracking-widest">
+                            <span class="text-emerald-500">Adjacent (x)</span>
+                            <span class="text-indigo-500">Opposite (y)</span>
+                        </div>
+                    </div>
+                    <ul class="text-xs text-slate-500 space-y-2">
+                        <li>• Quadrant I: Both (+, +)</li>
+                        <li>• Quadrant II: (-, +)</li>
+                        <li>• Quadrant III: (-, -)</li>
+                        <li>• Quadrant IV: (+, -)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Periodic Graphs -->
+        <section id="graphs" class="scroll-mt-24">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">3</div>
+                <h3 class="text-3xl font-bold text-slate-900">Periodic Graphs</h3>
+            </div>
+            <div class="card">
+                <div class="mb-6 flex justify-between items-center">
+                    <h4 class="text-lg font-bold">The Sine Wave</h4>
+                    <div class="flex space-x-2">
+                        <button onclick="setGraph('sin')" id="btn-sin" class="px-3 py-1 bg-indigo-600 text-white rounded-full text-xs font-bold">Sine</button>
+                        <button onclick="setGraph('cos')" id="btn-cos" class="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-bold">Cosine</button>
+                    </div>
+                </div>
+                <div class="h-64 bg-slate-50 border border-slate-100 rounded-xl overflow-hidden mb-6">
+                    <canvas id="wave-canvas" class="w-full h-full"></canvas>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-white border border-slate-100 rounded-xl">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Amplitude</label>
+                        <input type="range" id="wave-amp" min="10" max="80" value="40" class="w-full">
+                    </div>
+                    <div class="p-4 bg-white border border-slate-100 rounded-xl">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Frequency</label>
+                        <input type="range" id="wave-freq" min="1" max="10" value="2" class="w-full">
+                    </div>
+                    <div class="p-4 bg-slate-900 text-white rounded-xl flex flex-col justify-center">
+                        <div id="wave-equation" class="font-mono text-sm text-center text-indigo-400">y = A sin(Bx)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 3D Trig Visualization -->
+        <section id="three-d" class="scroll-mt-24">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">4</div>
+                <h3 class="text-3xl font-bold text-slate-900">3D Trigonometry</h3>
+            </div>
+            <div class="grid lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 h-[500px]" id="three-container"></div>
+                <div class="card space-y-6 flex flex-col justify-center">
+                    <h4 class="text-xl font-bold">The Spiral Helix</h4>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        By plotting $x = \cos(t)$, $y = \sin(t)$, and $z = t$, we create a 3D helix. This demonstrates how periodic circular motion translates into linear progress.
+                    </p>
+                    <div class="p-6 bg-slate-900 text-white rounded-3xl">
+                        <span class="text-[10px] uppercase font-bold text-slate-500 mb-2 block">Concepts</span>
+                        <ul class="text-xs space-y-2 text-indigo-400 font-mono">
+                            <li>• Periodic Motion</li>
+                            <li>• Oscillations</li>
+                            <li>• Vector Components</li>
+                        </ul>
+                    </div>
+                    <p class="text-[10px] text-slate-400 italic">Drag to rotate the 3D spiral. Use scroll to zoom.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="py-12 bg-white border-t border-slate-100 text-center text-slate-400 text-sm">
+        <p>© 2024 TrigMaster Visual Guide • Mastering Circular Functions</p>
+    </footer>
+
+    <script>
+        // --- RATIO ENGINE ---
+        const ratioCanvas = document.getElementById('ratio-canvas');
+        const rctx = ratioCanvas.getContext('2d');
+        const ratioAngle = document.getElementById('ratio-angle');
+
+        function drawRatioTriangle() {
+            const angle = parseInt(ratioAngle.value);
+            const w = ratioCanvas.width;
+            const h = ratioCanvas.height;
+            const originX = 50;
+            const originY = h - 50;
+            const adjLen = 180;
+            const rad = angle * Math.PI / 180;
+            const oppLen = adjLen * Math.tan(rad);
+            const hypLen = adjLen / Math.cos(rad);
+
+            rctx.clearRect(0, 0, w, h);
+            
+            // Draw Triangle
+            rctx.beginPath();
+            rctx.lineWidth = 3;
+            rctx.strokeStyle = '#cbd5e1';
+            rctx.moveTo(originX, originY);
+            rctx.lineTo(originX + adjLen, originY); // Adjacent
+            rctx.lineTo(originX + adjLen, originY - oppLen); // Opposite
+            rctx.closePath();
+            rctx.stroke();
+
+            // Highlight Hypotenuse
+            rctx.strokeStyle = '#6366f1';
+            rctx.beginPath();
+            rctx.moveTo(originX, originY);
+            rctx.lineTo(originX + adjLen, originY - oppLen);
+            rctx.stroke();
+
+            // Label Angle
+            rctx.fillStyle = '#1e293b';
+            rctx.font = 'bold 12px Inter';
+            rctx.fillText("θ = " + angle + "°", originX + 30, originY - 10);
+
+            // Update UI
+            document.getElementById('sin-val').innerText = Math.sin(rad).toFixed(2);
+            document.getElementById('cos-val').innerText = Math.cos(rad).toFixed(2);
+            document.getElementById('tan-val').innerText = Math.tan(rad).toFixed(2);
+        }
+
+        // --- UNIT CIRCLE ENGINE ---
+        const unitCanvas = document.getElementById('unit-circle-canvas');
+        const uctx = unitCanvas.getContext('2d');
+        const unitAngle = document.getElementById('unit-angle');
+
+        function drawUnitCircle() {
+            const angle = parseInt(unitAngle.value);
+            const w = unitCanvas.width;
+            const h = unitCanvas.height;
+            const centerX = w / 2;
+            const centerY = h / 2;
+            const radius = 100;
+            const rad = -angle * Math.PI / 180;
+
+            uctx.clearRect(0, 0, w, h);
+
+            // Draw Axes
+            uctx.strokeStyle = '#f1f5f9';
+            uctx.lineWidth = 1;
+            uctx.beginPath(); uctx.moveTo(0, centerY); uctx.lineTo(w, centerY); uctx.stroke();
+            uctx.beginPath(); uctx.moveTo(centerX, 0); uctx.lineTo(centerX, h); uctx.stroke();
+
+            // Draw Circle
+            uctx.strokeStyle = '#cbd5e1';
+            uctx.lineWidth = 2;
+            uctx.beginPath(); uctx.arc(centerX, centerY, radius, 0, Math.PI * 2); uctx.stroke();
+
+            // Draw Point & Lines
+            const px = centerX + Math.cos(rad) * radius;
+            const py = centerY + Math.sin(rad) * radius;
+
+            uctx.setLineDash([5, 5]);
+            uctx.strokeStyle = '#10b981'; // X Line
+            uctx.beginPath(); uctx.moveTo(px, py); uctx.lineTo(px, centerY); uctx.stroke();
+            uctx.strokeStyle = '#6366f1'; // Y Line
+            uctx.beginPath(); uctx.moveTo(px, py); uctx.lineTo(centerX, py); uctx.stroke();
+            uctx.setLineDash([]);
+
+            uctx.strokeStyle = '#1e293b';
+            uctx.beginPath(); uctx.moveTo(centerX, centerY); uctx.lineTo(px, py); uctx.stroke();
+
+            uctx.fillStyle = '#1e293b';
+            uctx.beginPath(); uctx.arc(px, py, 5, 0, Math.PI * 2); uctx.fill();
+
+            // UI
+            document.getElementById('unit-angle-text').innerText = angle + "°";
+            document.getElementById('unit-x').innerText = Math.cos(-rad).toFixed(3);
+            document.getElementById('unit-y').innerText = Math.sin(-rad).toFixed(3);
+        }
+
+        // --- WAVE ENGINE ---
+        const waveCanvas = document.getElementById('wave-canvas');
+        const wctx = waveCanvas.getContext('2d');
+        let graphType = 'sin';
+
+        function setGraph(type) {
+            graphType = type;
+            document.getElementById('btn-sin').className = type === 'sin' ? 'px-3 py-1 bg-indigo-600 text-white rounded-full text-xs font-bold' : 'px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-bold';
+            document.getElementById('btn-cos').className = type === 'cos' ? 'px-3 py-1 bg-indigo-600 text-white rounded-full text-xs font-bold' : 'px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-bold';
+            document.getElementById('wave-equation').innerText = type === 'sin' ? 'y = A sin(Bx)' : 'y = A cos(Bx)';
+            drawWave();
+        }
+
+        function drawWave() {
+            const w = waveCanvas.width = waveCanvas.offsetWidth;
+            const h = waveCanvas.height = waveCanvas.offsetHeight;
+            const amp = parseInt(document.getElementById('wave-amp').value);
+            const freq = parseInt(document.getElementById('wave-freq').value);
+            const centerY = h / 2;
+
+            wctx.clearRect(0, 0, w, h);
+            
+            // Draw Axis
+            wctx.strokeStyle = '#e2e8f0';
+            wctx.beginPath(); wctx.moveTo(0, centerY); wctx.lineTo(w, centerY); wctx.stroke();
+
+            wctx.strokeStyle = graphType === 'sin' ? '#6366f1' : '#10b981';
+            wctx.lineWidth = 3;
+            wctx.beginPath();
+
+            for (let x = 0; x < w; x++) {
+                const val = (x / w) * Math.PI * 2 * freq;
+                const y = graphType === 'sin' 
+                    ? centerY - Math.sin(val) * amp 
+                    : centerY - Math.cos(val) * amp;
+                if (x === 0) wctx.moveTo(x, y);
+                else wctx.lineTo(x, y);
+            }
+            wctx.stroke();
+        }
+
+        // --- THREE.JS SPIRAL ENGINE ---
+        let scene, camera, renderer, helix;
+        const threeContainer = document.getElementById('three-container');
+
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f172a);
+            camera = new THREE.PerspectiveCamera(75, threeContainer.clientWidth / threeContainer.clientHeight, 0.1, 1000);
+            camera.position.set(15, 15, 20);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(threeContainer.clientWidth, threeContainer.clientHeight);
+            threeContainer.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const pointLight = new THREE.PointLight(0x6366f1, 1, 100);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+
+            // Create Helix
+            const points = [];
+            for (let t = -10; t < 10; t += 0.1) {
+                points.push(new THREE.Vector3(Math.cos(t) * 5, Math.sin(t) * 5, t * 2));
+            }
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: 0x6366f1, linewidth: 2 });
+            helix = new THREE.Line(geometry, material);
+            scene.add(helix);
+
+            animateThree();
+        }
+
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            if(helix) {
+                helix.rotation.z += 0.01;
+            }
+            renderer.render(scene, camera);
+        }
+
+        // --- LISTENERS ---
+        ratioAngle.addEventListener('input', drawRatioTriangle);
+        unitAngle.addEventListener('input', drawUnitCircle);
+        document.getElementById('wave-amp').addEventListener('input', drawWave);
+        document.getElementById('wave-freq').addEventListener('input', drawWave);
+
+        window.onload = () => {
+            drawRatioTriangle();
+            drawUnitCircle();
+            drawWave();
+            initThree();
+
+            // 3D rotation handler
+            let isDragging = false;
+            threeContainer.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+            threeContainer.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    helix.rotation.x += e.movementY * 0.01;
+                    helix.rotation.y += e.movementX * 0.01;
+                }
+            });
+        };
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(threeContainer.clientWidth, threeContainer.clientHeight);
+            camera.aspect = threeContainer.clientWidth / threeContainer.clientHeight;
+            camera.updateProjectionMatrix();
+            drawWave();
+        });
+    </script>
+</body>
+</html>

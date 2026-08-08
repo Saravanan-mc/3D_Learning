@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering Variables & Operators | 3D Visual Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            margin: 0; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        canvas { display: block; }
+        .math-font { font-family: 'Fira Code', monospace; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        
+        .content-overlay { 
+            position: relative;
+            max-width: 420px; 
+            z-index: 10;
+            margin: 100px 5%;
+        }
+        
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .type-btn {
+            transition: all 0.2s ease;
+        }
+        .type-btn:hover {
+            transform: translateX(5px);
+        }
+        
+        .section-scroll {
+            height: auto;
+            min-height: 100vh;
+            pointer-events: none;
+        }
+        .section-scroll > * {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="selection:bg-blue-500/30">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass px-8 py-4 flex justify-between items-center border-b border-white/5">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-blue-500/30">x</div>
+            <h1 class="text-xl font-black tracking-tighter text-white">Code<span class="text-blue-500">Viz</span></h1>
+        </div>
+        <div class="hidden md:flex space-x-8 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            <a href="#variables" class="hover:text-blue-400">Variables</a>
+            <a href="#operators" class="hover:text-blue-400">Operators</a>
+        </div>
+    </nav>
+
+    <!-- Main Content Sections -->
+    <main class="relative z-10">
+        
+        <!-- Section: Data Types -->
+        <section id="variables" class="section-scroll">
+            <div class="content-overlay glass p-8 rounded-[2.5rem]">
+                <span class="text-blue-500 font-bold text-xs uppercase tracking-widest mb-2 block">03. Data Types</span>
+                <h2 class="text-4xl font-black mb-4 leading-tight">Primitives & Beyond</h2>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Data types are the categories we use to tell the computer what kind of data we are working with.
+                </p>
+                
+                <div class="space-y-2 mb-6">
+                    <div class="text-[10px] uppercase font-bold text-slate-500 mb-2">Primitive Types</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="updateVariable('string')" class="p-2 bg-pink-500/10 text-pink-400 text-[10px] font-bold rounded-lg border border-pink-500/20 hover:bg-pink-500/20 transition">String</button>
+                        <button onclick="updateVariable('number')" class="p-2 bg-blue-500/10 text-blue-400 text-[10px] font-bold rounded-lg border border-blue-500/20 hover:bg-blue-500/20 transition">Number</button>
+                        <button onclick="updateVariable('boolean')" class="p-2 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-lg border border-emerald-500/20 hover:bg-emerald-500/20 transition">Boolean</button>
+                        <button onclick="updateVariable('bigint')" class="p-2 bg-purple-500/10 text-purple-400 text-[10px] font-bold rounded-lg border border-purple-500/20 hover:bg-purple-500/20 transition">BigInt</button>
+                        <button onclick="updateVariable('null')" class="p-2 bg-slate-500/10 text-slate-400 text-[10px] font-bold rounded-lg border border-slate-500/20 hover:bg-slate-500/20 transition">Null</button>
+                        <button onclick="updateVariable('undefined')" class="p-2 bg-slate-500/10 text-slate-500 text-[10px] font-bold rounded-lg border border-white/5 hover:bg-white/10 transition">Undefined</button>
+                    </div>
+                </div>
+
+                <div class="space-y-2 mb-8">
+                    <div class="text-[10px] uppercase font-bold text-slate-500 mb-2">Non-Primitive</div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="updateVariable('object')" class="p-2 bg-orange-500/10 text-orange-400 text-[10px] font-bold rounded-lg border border-orange-500/20 hover:bg-orange-500/20 transition">Object</button>
+                        <button onclick="updateVariable('array')" class="p-2 bg-cyan-500/10 text-cyan-400 text-[10px] font-bold rounded-lg border border-cyan-500/20 hover:bg-cyan-500/20 transition">Array</button>
+                        <button onclick="updateVariable('function')" class="p-2 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold rounded-lg border border-indigo-500/20 hover:bg-indigo-500/20 transition">Function</button>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-950/80 rounded-2xl border border-white/5">
+                    <div id="code-preview" class="math-font text-blue-400 text-sm">
+                        let info = <span class="text-white">"Explore types"</span>;
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Operators -->
+        <section id="operators" class="section-scroll">
+            <div class="content-overlay glass p-8 rounded-[2.5rem]">
+                <span class="text-blue-500 font-bold text-xs uppercase tracking-widest mb-2 block">04. Operators</span>
+                <h2 class="text-4xl font-black mb-4 leading-tight">The Engines of Logic</h2>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Operators perform actions on variables and values. They are the "verbs" of your programming language.
+                </p>
+
+                <div class="space-y-6">
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-slate-500 mb-3 tracking-widest">Arithmetic (+ - * / %)</div>
+                        <div class="flex gap-2">
+                            <button onclick="animateOp('add')" class="flex-1 py-3 bg-blue-600 rounded-xl font-bold text-xs">Add (+)</button>
+                            <button onclick="animateOp('sub')" class="flex-1 py-3 bg-slate-800 rounded-xl font-bold text-xs">Sub (-)</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-slate-500 mb-3 tracking-widest">Comparison (== === != > <)</div>
+                        <div class="flex gap-2">
+                            <button onclick="animateOp('compare')" class="w-full py-3 bg-indigo-600 rounded-xl font-bold text-xs">Check Equality (===)</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-[10px] uppercase font-bold text-slate-500 mb-3 tracking-widest">Logical (&& || !)</div>
+                        <div class="flex gap-2">
+                            <button onclick="animateOp('logic')" class="w-full py-3 bg-emerald-600 rounded-xl font-bold text-xs">Logical AND (&&)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Indicators -->
+    <div class="fixed top-1/2 right-12 -translate-y-1/2 z-10 text-right space-y-4 hidden lg:block">
+        <div class="text-[10px] uppercase font-bold text-slate-600 tracking-tighter">Memory Visualizer</div>
+        <div class="text-2xl font-mono text-slate-400 opacity-20">PRIMITIVES</div>
+        <div class="text-2xl font-mono text-slate-400 opacity-20">NON-PRIMITIVES</div>
+        <div class="text-2xl font-mono text-blue-500">OPERATORS</div>
+    </div>
+
+    <div class="fixed bottom-8 left-8 z-50 text-[10px] uppercase tracking-widest font-bold text-slate-500">
+        Drag: Rotate | Scroll: Explore concepts
+    </div>
+
+    <script>
+        let scene, camera, renderer, clock;
+        let variableObj, containerShell, secondaryObj;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(4, 2, 8);
+            camera.lookAt(2, 0, 0);
+            
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            clock = new THREE.Clock();
+
+            // Lights
+            scene.add(new THREE.AmbientLight(0x404040, 3));
+            const mainLight = new THREE.PointLight(0x3b82f6, 5, 100);
+            mainLight.position.set(5, 5, 5);
+            scene.add(mainLight);
+
+            // Grid
+            const grid = new THREE.GridHelper(100, 50, 0x1e293b, 0x0f172a);
+            grid.position.y = -4;
+            scene.add(grid);
+
+            // Container Shell
+            const shellGeo = new THREE.BoxGeometry(4, 4, 4);
+            const shellMat = new THREE.MeshPhongMaterial({ color: 0x3b82f6, wireframe: true, transparent: true, opacity: 0.05 });
+            containerShell = new THREE.Mesh(shellGeo, shellMat);
+            containerShell.position.set(4, 0, 0);
+            scene.add(containerShell);
+
+            // Main Variable Object
+            variableObj = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5, 0), new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true }));
+            variableObj.position.set(4, 0, 0);
+            scene.add(variableObj);
+
+            // Secondary Object for Operators
+            secondaryObj = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshPhongMaterial({ color: 0x6366f1, transparent: true, opacity: 0 }));
+            secondaryObj.position.set(8, 0, 0);
+            scene.add(secondaryObj);
+
+            animate();
+        }
+
+        function updateVariable(type) {
+            const preview = document.getElementById('code-preview');
+            variableObj.scale.set(1.5, 1.5, 1.5);
+            setTimeout(() => variableObj.scale.set(1, 1, 1), 200);
+
+            switch(type) {
+                case 'string':
+                    variableObj.geometry = new THREE.BoxGeometry(2, 2, 2);
+                    variableObj.material.color.setHex(0xec4899);
+                    preview.innerHTML = `let <span class="text-yellow-400">text</span> = <span class="text-pink-400">"Hello"</span>;`;
+                    break;
+                case 'number':
+                    variableObj.geometry = new THREE.SphereGeometry(1.5, 32, 32);
+                    variableObj.material.color.setHex(0x3b82f6);
+                    preview.innerHTML = `let <span class="text-yellow-400">num</span> = <span class="text-blue-400">3.14</span>;`;
+                    break;
+                case 'boolean':
+                    variableObj.geometry = new THREE.OctahedronGeometry(1.8, 0);
+                    variableObj.material.color.setHex(0x10b981);
+                    preview.innerHTML = `let <span class="text-yellow-400">isValid</span> = <span class="text-emerald-400">true</span>;`;
+                    break;
+                case 'bigint':
+                    variableObj.geometry = new THREE.TorusKnotGeometry(1.2, 0.4, 100, 16);
+                    variableObj.material.color.setHex(0x8b5cf6);
+                    preview.innerHTML = `let <span class="text-yellow-400">huge</span> = <span class="text-purple-400">9007n</span>;`;
+                    break;
+                case 'null':
+                    variableObj.geometry = new THREE.PlaneGeometry(2, 0.1);
+                    variableObj.material.color.setHex(0x94a3b8);
+                    preview.innerHTML = `let <span class="text-yellow-400">empty</span> = <span class="text-slate-400">null</span>;`;
+                    break;
+                case 'undefined':
+                    variableObj.geometry = new THREE.IcosahedronGeometry(1.5, 0);
+                    variableObj.material.wireframe = true;
+                    variableObj.material.color.setHex(0x475569);
+                    preview.innerHTML = `let <span class="text-yellow-400">x</span>; <span class="text-slate-500">// undefined</span>`;
+                    break;
+                case 'object':
+                    variableObj.geometry = new THREE.DodecahedronGeometry(1.8, 0);
+                    variableObj.material.color.setHex(0xf97316);
+                    variableObj.material.wireframe = false;
+                    preview.innerHTML = `let <span class="text-yellow-400">user</span> = { id: 1 };`;
+                    break;
+                case 'array':
+                    variableObj.geometry = new THREE.CylinderGeometry(1, 1, 3, 32);
+                    variableObj.rotation.z = Math.PI / 2;
+                    variableObj.material.color.setHex(0x06b6d4);
+                    preview.innerHTML = `let <span class="text-yellow-400">list</span> = [1, 2, 3];`;
+                    break;
+                case 'function':
+                    variableObj.geometry = new THREE.TorusGeometry(1.2, 0.5, 16, 100);
+                    variableObj.material.color.setHex(0x6366f1);
+                    preview.innerHTML = `let <span class="text-yellow-400">run</span> = () => {};`;
+                    break;
+            }
+        }
+
+        function animateOp(op) {
+            secondaryObj.material.opacity = 1;
+            secondaryObj.position.x = 8;
+            
+            if(op === 'add') {
+                new TWEEN.Tween(secondaryObj.position).to({ x: 5 }, 500).onComplete(() => {
+                    variableObj.scale.set(2, 2, 2);
+                    secondaryObj.material.opacity = 0;
+                }).start();
+            } else if (op === 'sub') {
+                variableObj.scale.set(2, 2, 2);
+                new TWEEN.Tween(variableObj.scale).to({ x: 1, y: 1, z: 1 }, 500).start();
+                secondaryObj.material.opacity = 0;
+            } else if (op === 'compare') {
+                secondaryObj.position.x = 7;
+                variableObj.position.x = 1;
+                const match = Math.random() > 0.5;
+                variableObj.material.color.setHex(match ? 0x10b981 : 0xef4444);
+                secondaryObj.material.color.setHex(match ? 0x10b981 : 0xef4444);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            if(variableObj) {
+                variableObj.position.y = Math.sin(time) * 0.2;
+                variableObj.rotation.y += 0.01;
+            }
+            if(containerShell) containerShell.rotation.y -= 0.002;
+            if(secondaryObj) secondaryObj.rotation.x += 0.02;
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Interactivity
+        let isDragging = false;
+        window.addEventListener('mousedown', () => isDragging = true);
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', (e) => {
+            if(isDragging) {
+                scene.rotation.y += e.movementX * 0.002;
+                scene.rotation.x += e.movementY * 0.002;
+            }
+        });
+
+        init();
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+</body>
+</html>

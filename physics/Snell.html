@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snell's Law: Advanced Optical Lab</title>
+    <!-- 
+        TECHNICAL DOCUMENTATION: THE PHYSICS OF REFRACTION
+        
+        1. SNELL'S LAW (Fundamental Equation):
+           n1 * sin(θi) = n2 * sin(θr)
+           Where n1 and n2 are the refractive indices, θi is the angle of incidence, 
+           and θr is the angle of refraction. This is derived from Fermat's Principle 
+           of Least Time. Light follows the path that takes the least amount of time, 
+           meaning it "bends" toward the slower (denser) medium.
+           
+        2. FRESNEL EQUATIONS (Intensity Distribution):
+           This simulation calculates the Reflection Coefficient (R) using simplified 
+           Fresnel logic for unpolarized light. 
+           Rs = |(n1 cosθi - n2 cosθr) / (n1 cosθi + n2 cosθr)|^2
+           Rp = |(n1 cosθr - n2 cosθi) / (n1 cosθr + n2 cosθi)|^2
+           R = (Rs + Rp) / 2.
+           The opacity of the reflected and refracted rays in this 3D scene is 
+           dynamically adjusted based on these energy conservation principles.
+           
+        3. BREWSTER'S ANGLE (θB):
+           θB = arctan(n2 / n1).
+           At this specific angle, p-polarized light is perfectly transmitted (zero reflection).
+           
+        4. TOTAL INTERNAL REFLECTION (TIR):
+           When n1 > n2 and sin(θi) > (n2 / n1), the light cannot escape the first medium. 
+           The energy is 100% reflected. The Critical Angle θc = arcsin(n2 / n1).
+    -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;700;900&display=swap');
+
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Inter', system-ui, sans-serif; 
+            background: #020617; 
+            color: white; 
+            user-select: none;
+        }
+        #main-layout {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+        #interaction-panel {
+            width: 420px;
+            min-width: 420px;
+            background: rgba(10, 15, 25, 0.98);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+            box-shadow: 15px 0 40px rgba(0,0,0,0.6);
+        }
+        #simulation-panel {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+        }
+        #canvas-container { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+        }
+        
+        .sidebar-section {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 24px;
+        }
+        .data-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        
+        input[type=range] { 
+            width: 100%; height: 6px; background: #1e293b; border-radius: 3px; appearance: none; cursor: pointer; 
+        }
+        input[type=range]::-webkit-slider-thumb { 
+            appearance: none; width: 18px; height: 18px; background: #fbbf24; border-radius: 50%; cursor: pointer; border: 2px solid white;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+        }
+        
+        .material-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+        }
+        .material-btn:hover { background: rgba(255,255,255,0.15); }
+        .material-btn.active { background: #fbbf24; color: #000; border-color: #fbbf24; }
+
+        .formula { font-family: 'Cambria', serif; font-style: italic; }
+        .kb-text { font-size: 11px; color: #94a3b8; line-height: 1.6; }
+        
+        #interaction-panel::-webkit-scrollbar { width: 4px; }
+        #interaction-panel::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        .laser-glow {
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-layout">
+        <!-- LEFT PANEL: Interaction Dashboard -->
+        <aside id="interaction-panel">
+            <header class="sidebar-section bg-slate-900/40">
+                <h1 class="text-2xl font-black tracking-tighter text-white">SNELL <span class="text-amber-400">PRO</span></h1>
+                <p class="text-[10px] text-slate-500 uppercase font-bold tracking-[0.4em]">Advanced Optics Simulator</p>
+            </header>
+
+            <!-- Material Presets -->
+            <section class="sidebar-section">
+                <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">Material Presets</h2>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-[10px] text-slate-400 mb-2 font-bold uppercase">Medium 1 (Incident)</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="setPreset(1, 1.00)" class="material-btn active" id="m1-air">Air</button>
+                            <button onclick="setPreset(1, 1.33)" class="material-btn" id="m1-water">Water</button>
+                            <button onclick="setPreset(1, 1.52)" class="material-btn" id="m1-glass">Glass</button>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 mb-2 font-bold uppercase">Medium 2 (Refractive)</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="setPreset(2, 1.00)" class="material-btn" id="m2-air">Air</button>
+                            <button onclick="setPreset(2, 1.33)" class="material-btn" id="m2-water">Water</button>
+                            <button onclick="setPreset(2, 1.52)" class="material-btn active" id="m2-glass">Glass</button>
+                            <button onclick="setPreset(2, 2.42)" class="material-btn" id="m2-diamond">Diamond</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Manual Controls -->
+            <section class="sidebar-section space-y-6">
+                <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Fine Adjustment</h2>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between text-[11px] font-bold text-slate-300">
+                        <span>Incident Index ($n_1$)</span>
+                        <span class="text-amber-400 font-mono" id="n1-label">1.00</span>
+                    </div>
+                    <input type="range" id="n1-slider" min="1" max="2.6" step="0.01" value="1">
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between text-[11px] font-bold text-slate-300">
+                        <span>Refractive Index ($n_2$)</span>
+                        <span class="text-indigo-400 font-mono" id="n2-label">1.52</span>
+                    </div>
+                    <input type="range" id="n2-slider" min="1" max="2.6" step="0.01" value="1.52">
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between text-[11px] font-bold text-slate-300">
+                        <span>Incidence Angle ($\theta_i$)</span>
+                        <span class="text-yellow-400 font-mono" id="theta-label">45°</span>
+                    </div>
+                    <input type="range" id="theta-slider" min="0" max="89.5" step="0.5" value="45">
+                </div>
+            </section>
+
+            <!-- Technical Telemetry -->
+            <section class="sidebar-section space-y-4">
+                <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Optical Analytics</h2>
+                <div class="data-card space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <p class="text-[9px] uppercase text-slate-500">Refraction $\theta_r$</p>
+                            <p id="theta-r-val" class="text-white font-bold font-mono">0.0°</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[9px] uppercase text-slate-500">Reflection $R$</p>
+                            <p id="reflection-coeff" class="text-rose-400 font-bold font-mono">0.0%</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[9px] uppercase text-slate-500">Critical $\theta_c$</p>
+                            <p id="theta-c-val" class="text-indigo-400 font-bold font-mono">N/A</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[9px] uppercase text-slate-500">Brewster $\theta_B$</p>
+                            <p id="theta-b-val" class="text-emerald-400 font-bold font-mono">56.7°</p>
+                        </div>
+                    </div>
+                    <div class="pt-3 border-t border-white/5 space-y-2">
+                        <div class="flex justify-between items-center text-[10px]">
+                            <span class="text-slate-400">Light Speed in $n_1$:</span>
+                            <span id="v1-val" class="text-slate-200 font-mono">3.00e8</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[10px]">
+                            <span class="text-slate-400">Light Speed in $n_2$:</span>
+                            <span id="v2-val" class="text-slate-200 font-mono">1.97e8</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="tir-warning" class="hidden data-card border-l-2 border-red-500 bg-red-500/10 py-3">
+                    <p class="text-[10px] font-black uppercase text-red-500">Total Internal Reflection</p>
+                    <p class="text-[10px] text-slate-400">No power is transmitted to Medium 2.</p>
+                </div>
+            </section>
+
+            <!-- Knowledge Base -->
+            <section class="sidebar-section flex-grow">
+                <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Mathematical Theory</h2>
+                <div class="kb-text space-y-3">
+                    <p>
+                        <span class="text-white font-bold">Snell's Law</span> determines the ray path: 
+                        <span class="formula font-bold italic">$n_1 \sin\theta_i = n_2 \sin\theta_r$</span>.
+                    </p>
+                    <p>
+                        This simulation calculates energy conservation using the <span class="text-white">Fresnel Equations</span>. Notice how the reflected ray becomes brighter as the angle increases, even before TIR occurs.
+                    </p>
+                    <p>
+                        At <span class="text-emerald-400 font-bold">Brewster's Angle</span>, reflection is minimized. In real life, polarized sunglasses use this law to filter out glare from water or road surfaces.
+                    </p>
+                </div>
+            </section>
+
+            <footer class="p-6 text-[9px] text-slate-600 uppercase tracking-tighter text-center">
+                Three.js Physics Engine • Maxwell-Snell Solver v2.5
+            </footer>
+        </aside>
+
+        <!-- RIGHT PANEL: 3D Visualization -->
+        <main id="simulation-panel">
+            <div id="canvas-container"></div>
+
+            <!-- Legend Overlay -->
+            <div class="absolute top-6 right-6 flex flex-col gap-3 glass px-5 py-4 pointer-events-none">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-1 bg-yellow-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]"></div>
+                    <span class="text-[10px] font-black uppercase tracking-wider">Incident (100%)</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-1 bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)]"></div>
+                    <span class="text-[10px] font-black uppercase tracking-wider">Refracted (T)</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-1 bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.8)]"></div>
+                    <span class="text-[10px] font-black uppercase tracking-wider">Reflected (R)</span>
+                </div>
+                <div class="border-t border-white/10 pt-2 mt-1">
+                    <span class="text-[8px] text-slate-500 uppercase tracking-[0.2em]">Drag to Rotate • Scroll to Zoom</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        /**
+         * PHYSICS STATE & CONSTANTS
+         */
+        const LIGHT_SPEED = 299792458;
+        
+        let state = {
+            n1: 1.00,
+            n2: 1.52,
+            thetaI: 45,
+            thetaR: 0,
+            coeffR: 0,
+            tir: false,
+            time: 0
+        };
+
+        let scene, camera, renderer, rayGroup, boundary, normalLine;
+        let incidentRay, reflectedRay, refractedRay;
+
+        /**
+         * INITIALIZATION
+         */
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020617);
+
+            const container = document.getElementById('canvas-container');
+            camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 8, 25);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            rayGroup = new THREE.Group();
+            scene.add(rayGroup);
+
+            // Lighting for depth
+            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+            const pLight = new THREE.PointLight(0xffffff, 1, 100);
+            pLight.position.set(10, 10, 10);
+            scene.add(pLight);
+
+            createGeometry();
+            setupInteractions();
+            
+            animate();
+        }
+
+        function createGeometry() {
+            // Boundary Plane
+            const boundaryGeo = new THREE.PlaneGeometry(50, 50);
+            const boundaryMat = new THREE.MeshPhongMaterial({ 
+                color: 0x1e293b, 
+                transparent: true, 
+                opacity: 0.2, 
+                side: THREE.DoubleSide,
+                shininess: 100
+            });
+            boundary = new THREE.Mesh(boundaryGeo, boundaryMat);
+            boundary.rotation.x = Math.PI / 2;
+            scene.add(boundary);
+
+            // Normal Line
+            const normalGeo = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 15, 0),
+                new THREE.Vector3(0, -15, 0)
+            ]);
+            normalLine = new THREE.LineSegments(normalGeo, new THREE.LineDashedMaterial({ 
+                color: 0xffffff, 
+                dashSize: 0.4, 
+                gapSize: 0.4,
+                transparent: true,
+                opacity: 0.2
+            }));
+            normalLine.computeLineDistances();
+            scene.add(normalLine);
+
+            // Rays (Modeled as Cylinders for "Laser" look)
+            const buildRay = (color) => {
+                const geo = new THREE.CylinderGeometry(0.12, 0.12, 1, 12);
+                const mat = new THREE.MeshStandardMaterial({ 
+                    color: color, 
+                    emissive: color, 
+                    emissiveIntensity: 0.8,
+                    transparent: true 
+                });
+                return new THREE.Mesh(geo, mat);
+            };
+
+            incidentRay = buildRay(0xfbbf24);
+            reflectedRay = buildRay(0xf43f5e);
+            refractedRay = buildRay(0x38bdf8);
+
+            rayGroup.add(incidentRay, reflectedRay, refractedRay);
+        }
+
+        /**
+         * OPTICAL PHYSICS SOLVER
+         */
+        function solvePhysics() {
+            const thetaI_Rad = state.thetaI * (Math.PI / 180);
+            const sinThetaR = (state.n1 * Math.sin(thetaI_Rad)) / state.n2;
+            
+            // 1. Critical Angle Check
+            if (state.n1 > state.n2) {
+                const thetaC_Rad = Math.asin(state.n2 / state.n1);
+                document.getElementById('theta-c-val').innerText = (thetaC_Rad * 180 / Math.PI).toFixed(1) + "°";
+            } else {
+                document.getElementById('theta-c-val').innerText = "N/A";
+            }
+
+            // 2. Brewster's Angle
+            const thetaB_Rad = Math.atan(state.n2 / state.n1);
+            document.getElementById('theta-b-val').innerText = (thetaB_Rad * 180 / Math.PI).toFixed(1) + "°";
+
+            // 3. Refraction vs TIR
+            if (sinThetaR > 1.0) {
+                state.tir = true;
+                state.coeffR = 1.0;
+                document.getElementById('theta-r-val').innerText = "TIR";
+                document.getElementById('tir-warning').classList.remove('hidden');
+            } else {
+                state.tir = false;
+                const thetaR_Rad = Math.asin(sinThetaR);
+                state.thetaR = thetaR_Rad * (180 / Math.PI);
+                document.getElementById('theta-r-val').innerText = state.thetaR.toFixed(1) + "°";
+                document.getElementById('tir-warning').classList.add('hidden');
+
+                // 4. Fresnel Reflection Coefficient (Intensity)
+                // Simplified for average unpolarized light
+                if (state.thetaI < 0.1) {
+                    state.coeffR = Math.pow((state.n1 - state.n2) / (state.n1 + state.n2), 2);
+                } else {
+                    const rs = Math.pow((state.n1 * Math.cos(thetaI_Rad) - state.n2 * Math.cos(thetaR_Rad)) / (state.n1 * Math.cos(thetaI_Rad) + state.n2 * Math.cos(thetaR_Rad)), 2);
+                    const rp = Math.pow((state.n1 * Math.cos(thetaR_Rad) - state.n2 * Math.cos(thetaI_Rad)) / (state.n1 * Math.cos(thetaR_Rad) + state.n2 * Math.cos(thetaI_Rad)), 2);
+                    state.coeffR = (rs + rp) / 2;
+                }
+            }
+
+            document.getElementById('reflection-coeff').innerText = (state.coeffR * 100).toFixed(1) + "%";
+            document.getElementById('v1-val').innerText = (LIGHT_SPEED / state.n1).toExponential(2);
+            document.getElementById('v2-val').innerText = (LIGHT_SPEED / state.n2).toExponential(2);
+
+            updateRays(thetaI_Rad);
+        }
+
+        function updateRays(thetaI_Rad) {
+            const length = 15;
+
+            // Incident
+            incidentRay.scale.y = length;
+            incidentRay.position.set(- (length/2) * Math.sin(thetaI_Rad), (length/2) * Math.cos(thetaI_Rad), 0);
+            incidentRay.rotation.z = thetaI_Rad;
+
+            // Reflected
+            reflectedRay.scale.y = length;
+            reflectedRay.position.set((length/2) * Math.sin(thetaI_Rad), (length/2) * Math.cos(thetaI_Rad), 0);
+            reflectedRay.rotation.z = -thetaI_Rad;
+            reflectedRay.material.opacity = Math.max(0.1, state.coeffR);
+            reflectedRay.material.emissiveIntensity = 0.2 + state.coeffR;
+
+            // Refracted
+            if (state.tir) {
+                refractedRay.visible = false;
+            } else {
+                refractedRay.visible = true;
+                const thetaR_Rad = state.thetaR * (Math.PI / 180);
+                refractedRay.scale.y = length;
+                refractedRay.position.set((length/2) * Math.sin(thetaR_Rad), -(length/2) * Math.cos(thetaR_Rad), 0);
+                refractedRay.rotation.z = Math.PI + thetaR_Rad;
+                refractedRay.material.opacity = 1.0 - state.coeffR;
+                refractedRay.material.emissiveIntensity = 0.8 * (1.0 - state.coeffR);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            solvePhysics();
+            renderer.render(scene, camera);
+        }
+
+        /**
+         * UI HANDLERS
+         */
+        function setPreset(medium, n) {
+            if (medium === 1) {
+                state.n1 = n;
+                document.getElementById('n1-slider').value = n;
+                document.querySelectorAll('[id^="m1-"]').forEach(el => el.classList.remove('active'));
+                if (n === 1.00) document.getElementById('m1-air').classList.add('active');
+                if (n === 1.33) document.getElementById('m1-water').classList.add('active');
+                if (n === 1.52) document.getElementById('m1-glass').classList.add('active');
+            } else {
+                state.n2 = n;
+                document.getElementById('n2-slider').value = n;
+                document.querySelectorAll('[id^="m2-"]').forEach(el => el.classList.remove('active'));
+                if (n === 1.00) document.getElementById('m2-air').classList.add('active');
+                if (n === 1.33) document.getElementById('m2-water').classList.add('active');
+                if (n === 1.52) document.getElementById('m2-glass').classList.add('active');
+                if (n === 2.42) document.getElementById('m2-diamond').classList.add('active');
+            }
+            updateLabels();
+        }
+
+        function updateLabels() {
+            document.getElementById('n1-label').innerText = state.n1.toFixed(2);
+            document.getElementById('n2-label').innerText = state.n2.toFixed(2);
+            document.getElementById('theta-label').innerText = state.thetaI + "°";
+        }
+
+        function setupInteractions() {
+            document.getElementById('n1-slider').addEventListener('input', (e) => {
+                state.n1 = parseFloat(e.target.value);
+                updateLabels();
+            });
+            document.getElementById('n2-slider').addEventListener('input', (e) => {
+                state.n2 = parseFloat(e.target.value);
+                updateLabels();
+            });
+            document.getElementById('theta-slider').addEventListener('input', (e) => {
+                state.thetaI = parseFloat(e.target.value);
+                updateLabels();
+            });
+
+            let isDragging = false, lx, ly;
+            const container = document.getElementById('simulation-panel');
+            container.addEventListener('mousedown', e => { isDragging = true; lx = e.clientX; ly = e.clientY; });
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', e => {
+                if (!isDragging) return;
+                scene.rotation.y += (e.clientX - lx) * 0.005;
+                lx = e.clientX;
+            });
+
+            window.addEventListener('resize', () => {
+                const canvasCont = document.getElementById('canvas-container');
+                camera.aspect = canvasCont.clientWidth / canvasCont.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(canvasCont.clientWidth, canvasCont.clientHeight);
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

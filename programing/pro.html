@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programming Hub | ProOS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #fdfdfd;
+            --accent-code: #10b981;
+            --accent-blue: #2563eb;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --shadow-md: 0 12px 24px -8px rgba(16, 185, 129, 0.15);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            background-image: radial-gradient(at 0% 0%, #ecfdf5 0, transparent 50%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--accent-code);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            transition: var(--transition);
+        }
+        .back-btn:hover { transform: translateX(-5px); }
+
+        .header-section {
+            margin-bottom: 40px;
+        }
+
+        .header-section h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--text-main);
+        }
+
+        .header-section p {
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .search-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 400px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .search-box input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .file-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .file-card:hover {
+            transform: translateY(-5px);
+            background: white;
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-code);
+        }
+
+        .file-icon {
+            font-size: 2rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .file-name {
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-info {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #f0fdf4;
+            color: #166534;
+            font-weight: 600;
+            align-self: flex-start;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="index.php" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Terminal
+    </a>
+
+    <header class="header-section">
+        <h1>Programming Hub</h1>
+        <p>Resource Directory & Symbolic Logic Files</p>
+    </header>
+
+    <div class="search-box">
+        <i class="fas fa-search" style="color: var(--accent-code)"></i>
+        <input type="text" id="fileSearch" placeholder="Filter modules...">
+    </div>
+
+    <div class="file-grid" id="fileGrid">
+        
+        <!-- 1. Programming.html -->
+        <a href="Programming.html" class="file-card">
+            <span class="file-icon">💻</span>
+            <span class="tag">Core</span>
+            <span class="file-name">Programming</span>
+            <div class="file-info"><span>18KB</span> <span>v1.0</span></div>
+        </a>
+
+
+        <!-- 3. veriable.html -->
+        <a href="veriable.html" class="file-card">
+            <span class="file-icon">📦</span>
+            <span class="tag">Memory</span>
+            <span class="file-name">Variables</span>
+            <div class="file-info"><span>10KB</span> <span>v0.9</span></div>
+        </a>
+
+        <!-- 4. datatype.html -->
+        <a href="datatype.html" class="file-card">
+            <span class="file-icon">🗃️</span>
+            <span class="tag">Data</span>
+            <span class="file-name">Data Types</span>
+            <div class="file-info"><span>16KB</span> <span>v1.0</span></div>
+        </a>
+
+        <!-- 5. ifelse.html -->
+        <a href="ifelse.html" class="file-card">
+            <span class="file-icon">⚖️</span>
+            <span class="tag">Logic</span>
+            <span class="file-name">If-Else Logic</span>
+            <div class="file-info"><span>12KB</span> <span>v1.0</span></div>
+        </a>
+
+
+         <a href="ifelseif.html" class="file-card">
+            <span class="file-icon">⚖️</span>
+            <span class="tag">Logic</span>
+            <span class="file-name">If-Else Logic</span>
+            <div class="file-info"><span>12KB</span> <span>v1.0</span></div>
+        </a>
+
+        <!-- 6. loops.html -->
+        <a href="loops.html" class="file-card">
+            <span class="file-icon">♻️</span>
+            <span class="tag">Control</span>
+            <span class="file-name">Loops</span>
+            <div class="file-info"><span>18KB</span> <span>v1.1</span></div>
+        </a>
+
+        <!-- 7. Functions.html -->
+        <a href="Functions.html" class="file-card">
+            <span class="file-icon">λ</span>
+            <span class="tag">Execution</span>
+            <span class="file-name">Functions</span>
+            <div class="file-info"><span>15KB</span> <span>v1.1</span></div>
+        </a>
+
+        <!-- 8. arrays.html -->
+        <a href="arrays.html" class="file-card">
+            <span class="file-icon">🔢</span>
+            <span class="tag">Basics</span>
+            <span class="file-name">Arrays</span>
+            <div class="file-info"><span>19KB</span> <span>v1.0</span></div>
+        </a>
+
+        <!-- 9. DSA.html -->
+        <a href="DSA.html" class="file-card">
+            <span class="file-icon">📚</span>
+            <span class="tag">Structures</span>
+            <span class="file-name">DSA I</span>
+            <div class="file-info"><span>22KB</span> <span>v1.0</span></div>
+        </a>
+
+   
+
+        <!-- 11. opps.html -->
+        <a href="opps.html" class="file-card">
+            <span class="file-icon">🏗️</span>
+            <span class="tag">Architecture</span>
+            <span class="file-name">OOP Concepts</span>
+            <div class="file-info"><span>16KB</span> <span>v1.2</span></div>
+        </a>
+
+     
+
+    </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('fileSearch');
+    const cards = document.querySelectorAll('.file-card');
+
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        cards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            card.style.display = text.includes(term) ? 'flex' : 'none';
+        });
+    });
+</script>
+
+</body>
+</html>

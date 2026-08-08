@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirchhoff's Laws: Complex Circuit Lab</title>
+    <!-- 
+        TECHNICAL DOCUMENTATION: KIRCHHOFF'S LAWS SIMULATION
+        
+        1. KIRCHHOFF'S CURRENT LAW (KCL / Junction Rule):
+           Based on the Conservation of Charge. Σ I_in = Σ I_out.
+           The simulation calculates currents at a central junction node.
+           
+        2. KIRCHHOFF'S VOLTAGE LAW (KVL / Loop Rule):
+           Based on the Conservation of Energy. Σ V = 0 around any closed loop.
+           The simulation provides real-time summation for two independent loops.
+           
+        CIRCUIT TOPOLOGY:
+        Two loops with a shared central branch.
+        - Loop 1: Voltage Source (V1), Resistor 1 (R1).
+        - Shared Branch: Resistor 2 (R2).
+        - Loop 2: Resistor 3 (R3).
+    -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Inter', system-ui, sans-serif; 
+            background: #020617; 
+            color: white; 
+            user-select: none;
+        }
+        #main-layout {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+        #interaction-panel {
+            width: 380px;
+            min-width: 380px;
+            background: rgba(15, 23, 42, 0.98);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+        }
+        #simulation-panel {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+        }
+        #canvas-container { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+        }
+        
+        /* Sidebar Styling */
+        .sidebar-section {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 24px;
+        }
+        .data-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        
+        /* Control Elements */
+        input[type=range] { 
+            width: 100%; height: 5px; background: #334155; border-radius: 2px; appearance: none; cursor: pointer; 
+        }
+        input[type=range]::-webkit-slider-thumb { 
+            appearance: none; width: 16px; height: 16px; background: #22d3ee; border-radius: 50%; cursor: pointer; border: 2px solid white;
+        }
+        
+        .law-tab {
+            flex: 1;
+            padding: 10px 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+            background: rgba(255,255,255,0.02);
+            color: #64748b;
+        }
+        .law-tab.active {
+            background: #22d3ee;
+            color: #020617;
+            border-color: #22d3ee;
+            box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
+        }
+
+        .action-btn {
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 900;
+            font-size: 10px;
+        }
+
+        #interaction-panel::-webkit-scrollbar { width: 4px; }
+        #interaction-panel::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        .formula { font-family: 'Cambria', serif; font-style: italic; }
+        .math-symbol { color: #22d3ee; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="main-layout">
+        <!-- LEFT PANEL: Everything interactive -->
+        <aside id="interaction-panel">
+            <!-- Header -->
+            <header class="sidebar-section bg-slate-900/50">
+                <h1 class="text-2xl font-black tracking-tighter text-white">KIRCHHOFF <span class="text-cyan-400">3D</span></h1>
+                <p class="text-[10px] text-slate-500 uppercase font-bold tracking-[0.3em]">Advanced Circuit Analysis</p>
+            </header>
+
+            <!-- Mode Selection -->
+            <section class="sidebar-section">
+                <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">Select Simulation Mode</h2>
+                <div class="flex gap-2">
+                    <div onclick="setLaw(1)" id="tab-1" class="law-tab active">Law I: KCL</div>
+                    <div onclick="setLaw(2)" id="tab-2" class="law-tab">Law II: KVL</div>
+                </div>
+            </section>
+
+            <!-- Configuration Controls -->
+            <section class="sidebar-section space-y-6">
+                <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Component Parameters</h2>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[11px] font-bold text-slate-300">
+                        <span>Voltage Source (V1)</span>
+                        <span class="text-yellow-400 font-mono" id="v1-label">12 V</span>
+                    </div>
+                    <input type="range" id="v1-slider" min="0" max="24" step="1" value="12">
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[11px] font-bold text-slate-300">
+                        <span>Resistor 1 (R1)</span>
+                        <span class="text-rose-400 font-mono" id="r1-label">100 Ω</span>
+                    </div>
+                    <input type="range" id="r1-slider" min="10" max="500" step="10" value="100">
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[11px] font-bold text-slate-300">
+                        <span>Resistor 2 (R2)</span>
+                        <span class="text-emerald-400 font-mono" id="r2-label">200 Ω</span>
+                    </div>
+                    <input type="range" id="r2-slider" min="10" max="500" step="10" value="200">
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[11px] font-bold text-slate-300">
+                        <span>Resistor 3 (R3)</span>
+                        <span class="text-indigo-400 font-mono" id="r3-label">150 Ω</span>
+                    </div>
+                    <input type="range" id="r3-slider" min="10" max="500" step="10" value="150">
+                </div>
+            </section>
+
+            <!-- Real-time Telemetry -->
+            <section class="sidebar-section space-y-4">
+                <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Live Telemetry</h2>
+                <div class="data-card space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400 text-xs font-medium">Branch Current I1:</span>
+                        <span id="i1-val" class="text-white font-mono font-bold">0.00 mA</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400 text-xs font-medium">Branch Current I2:</span>
+                        <span id="i2-val" class="text-white font-mono font-bold">0.00 mA</span>
+                    </div>
+                    <div class="flex justify-between items-center border-t border-white/5 pt-2">
+                        <span class="text-slate-400 text-xs font-medium">Branch Current I3:</span>
+                        <span id="i3-val" class="text-cyan-400 font-mono font-bold">0.00 mA</span>
+                    </div>
+                </div>
+                
+                <div id="telemetry-check" class="data-card space-y-2 border-l-2 border-emerald-500">
+                    <div class="text-[10px] uppercase font-bold text-emerald-400">Summation Check</div>
+                    <p id="check-text" class="text-[11px] text-slate-300"></p>
+                </div>
+            </section>
+
+            <!-- Theory Box -->
+            <section class="sidebar-section flex-grow">
+                <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Mathematical Theory</h2>
+                <div id="active-law-desc" class="text-xs text-slate-400 leading-relaxed bg-slate-400/5 p-4 rounded-xl border border-white/5 space-y-3">
+                    <!-- Dynamic Content -->
+                </div>
+                
+                <div class="mt-4 p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10 space-y-2">
+                    <h3 class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Historical Context</h3>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">
+                        Gustav Kirchhoff formulated these laws in 1845. They are a generalization of Ohm's Law and are fundamental to the nodal and mesh analysis used in all modern electrical engineering, from power grids to smartphone microprocessors.
+                    </p>
+                </div>
+            </section>
+
+            <footer class="p-6 text-[9px] text-slate-600 uppercase tracking-tighter text-center">
+                Three.js Circuit Engine • V2.5.0
+            </footer>
+        </aside>
+
+        <!-- RIGHT PANEL: Full bleed simulation -->
+        <main id="simulation-panel">
+            <div id="canvas-container"></div>
+
+            <!-- Legend Overlay -->
+            <div class="absolute top-6 right-6 flex flex-col gap-3 glass px-5 py-4 pointer-events-none">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-2 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
+                    <span class="text-[10px] font-black uppercase tracking-wider">Voltage Source</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-3 bg-slate-600 border border-white/20 rounded shadow-[0_0_10px_rgba(255,255,255,0.1)]"></div>
+                    <span class="text-[10px] font-black uppercase tracking-wider">Resistive Load</span>
+                </div>
+                <div class="flex items-center gap-3 border-t border-white/10 pt-2 mt-1">
+                    <span class="text-[8px] text-slate-500 uppercase tracking-widest">Animated Dots = Conventional Current Flow</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /**
+         * PHYSICS & VISUAL STATE
+         */
+        let state = {
+            law: 1,
+            v1: 12,
+            r1: 100,
+            r2: 200,
+            r3: 150,
+            i1: 0,
+            i2: 0,
+            i3: 0,
+            time: 0
+        };
+
+        const LAW_TEXT = {
+            1: `<b>Kirchhoff's Current Law (KCL)</b><br><br>The Junction Rule states: "The algebraic sum of currents in a network of conductors meeting at a point is zero."<br><br><span class="formula text-lg">Σ I = 0</span><br><br>This is a statement of <b>Conservation of Charge</b>. Electrons cannot be created or destroyed at the junction. Notice how $I_1$ splits into $I_2$ and $I_3$.`,
+            2: `<b>Kirchhoff's Voltage Law (KVL)</b><br><br>The Loop Rule states: "The algebraic sum of the potential differences in any closed loop or mesh in a network is zero."<br><br><span class="formula text-lg">Σ V = 0</span><br><br>This is a statement of <b>Conservation of Energy</b>. The energy supplied by the source is exactly dissipated by the resistors in any path. Check the telemetry to see the voltage drops equal the source voltage.`
+        };
+
+        let scene, camera, renderer, circuitGroup, electrons = [];
+
+        /**
+         * INITIALIZATION
+         */
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020617);
+
+            const container = document.getElementById('canvas-container');
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 5, 25);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            circuitGroup = new THREE.Group();
+            scene.add(circuitGroup);
+
+            // Lighting
+            scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+            const pLight = new THREE.PointLight(0xffffff, 1, 100);
+            pLight.position.set(0, 10, 10);
+            scene.add(pLight);
+
+            createCircuitGeometry();
+            createElectrons();
+            setupInteractions();
+            
+            setLaw(1);
+            animate();
+        }
+
+        /**
+         * CIRCUIT MODELING
+         */
+        function createCircuitGeometry() {
+            // Schematic: Two loops sharing the center branch
+            // Left Loop: Source + R1
+            // Center Branch: R2
+            // Right Loop: R3
+            
+            const wireMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 });
+            const componentMat = new THREE.MeshStandardMaterial({ color: 0x475569 });
+            const sourceMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xfacc15, emissiveIntensity: 0.5 });
+
+            // Create wire segments (Cylinders)
+            function addWire(p1, p2) {
+                const dist = p1.distanceTo(p2);
+                const geo = new THREE.CylinderGeometry(0.15, 0.15, dist, 8);
+                const mesh = new THREE.Mesh(geo, wireMat);
+                mesh.position.copy(p1).add(p2).multiplyScalar(0.5);
+                mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p2.clone().sub(p1).normalize());
+                circuitGroup.add(mesh);
+            }
+
+            // Path nodes
+            const points = {
+                tl: new THREE.Vector3(-8, 5, 0),
+                tc: new THREE.Vector3(0, 5, 0),
+                tr: new THREE.Vector3(8, 5, 0),
+                bl: new THREE.Vector3(-8, -5, 0),
+                bc: new THREE.Vector3(0, -5, 0),
+                br: new THREE.Vector3(8, -5, 0)
+            };
+
+            // Wires
+            addWire(points.tl, points.tc);
+            addWire(points.tc, points.tr);
+            addWire(points.bl, points.bc);
+            addWire(points.bc, points.br);
+            addWire(points.tl, points.bl);
+            addWire(points.tc, points.bc);
+            addWire(points.tr, points.br);
+
+            // Components (Visual markers)
+            const boxGeo = new THREE.BoxGeometry(1, 2.5, 1);
+            
+            // Source
+            const source = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 2, 16), sourceMat);
+            source.position.set(-8, 0, 0);
+            circuitGroup.add(source);
+
+            // R1
+            const r1 = new THREE.Mesh(boxGeo, componentMat.clone());
+            r1.position.set(-4, 5, 0);
+            r1.rotation.z = Math.PI / 2;
+            circuitGroup.add(r1);
+
+            // R2 (Center)
+            const r2 = new THREE.Mesh(boxGeo, componentMat.clone());
+            r2.position.set(0, 0, 0);
+            circuitGroup.add(r2);
+
+            // R3
+            const r3 = new THREE.Mesh(boxGeo, componentMat.clone());
+            r3.position.set(8, 0, 0);
+            circuitGroup.add(r3);
+        }
+
+        function createElectrons() {
+            const geo = new THREE.SphereGeometry(0.15, 8, 8);
+            const mat = new THREE.MeshBasicMaterial({ color: 0x22d3ee });
+            
+            for(let i=0; i<60; i++) {
+                const e = new THREE.Mesh(geo, mat);
+                // Assign to specific branches
+                // 0: Left Loop, 1: Center, 2: Right Loop
+                e.userData = { 
+                    branch: i % 3, 
+                    progress: Math.random(),
+                    speed: 0.01 
+                };
+                electrons.push(e);
+                circuitGroup.add(e);
+            }
+        }
+
+        /**
+         * PHYSICS SOLVER
+         */
+        function solveCircuit() {
+            // Equations using Mesh Analysis or Nodal Analysis
+            // Loop 1 (Left): V1 - I1*R1 - I2*R2 = 0
+            // Loop 2 (Right): I2*R2 - I3*R3 = 0  (Assuming standard directions)
+            // KCL at Junction: I1 = I2 + I3
+            
+            const { v1, r1, r2, r3 } = state;
+
+            // Derived formulas:
+            // V1 = I1*R1 + (I1 - I3)*R2  => V1 = I1(R1 + R2) - I3*R2
+            // (I1 - I3)*R2 = I3*R3       => I1*R2 = I3(R2 + R3) => I3 = I1 * R2 / (R2 + R3)
+            // V1 = I1(R1 + R2) - I1 * R2^2 / (R2 + R3)
+            // V1 = I1 [ (R1+R2)(R2+R3) - R2^2 ] / (R2 + R3)
+            
+            const denom = (r1 + r2) * (r2 + r3) - Math.pow(r2, 2);
+            state.i1 = (v1 * (r2 + r3)) / denom;
+            state.i3 = (state.i1 * r2) / (r2 + r3);
+            state.i2 = state.i1 - state.i3;
+
+            // UI Update
+            document.getElementById('i1-val').innerText = (state.i1 * 1000).toFixed(1) + " mA";
+            document.getElementById('i2-val').innerText = (state.i2 * 1000).toFixed(1) + " mA";
+            document.getElementById('i3-val').innerText = (state.i3 * 1000).toFixed(1) + " mA";
+
+            const checkText = document.getElementById('check-text');
+            if (state.law === 1) {
+                const sum = state.i1 - (state.i2 + state.i3);
+                checkText.innerHTML = `Junction: $I_{in} = I_{out}$<br>${(state.i1*1000).toFixed(1)} ≈ ${(state.i2*1000).toFixed(1)} + ${(state.i3*1000).toFixed(1)}<br><span class="text-emerald-400 font-bold">Sum Error: ${sum.toFixed(8)}</span>`;
+            } else {
+                const vR1 = state.i1 * r1;
+                const vR2 = state.i2 * r2;
+                const loopSum = v1 - vR1 - vR2;
+                checkText.innerHTML = `Loop 1: $V_s - V_{R1} - V_{R2} = 0$<br>${v1}V - ${vR1.toFixed(1)}V - ${vR2.toFixed(1)}V<br><span class="text-emerald-400 font-bold">Sum Error: ${loopSum.toFixed(8)}</span>`;
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            state.time += 0.01;
+            solveCircuit();
+
+            // Animate Current Flow
+            const baseSpeed = 0.05;
+            electrons.forEach(e => {
+                const branch = e.userData.branch;
+                let current;
+                if (branch === 0) current = state.i1;
+                if (branch === 1) current = state.i2;
+                if (branch === 2) current = state.i3;
+
+                e.userData.progress += current * baseSpeed;
+                if (e.userData.progress > 1) e.userData.progress -= 1;
+                const t = e.userData.progress;
+
+                // Path definitions
+                if (branch === 0) { // Left Loop (CW)
+                    // TL(-8,5) -> TC(0,5) -> BC(0,-5) -> BL(-8,-5) -> TL
+                    // Just visualize Outer part for I1
+                    if (t < 0.25) e.position.set(-8, -5 + 40 * t, 0); // L
+                    else if (t < 0.5) e.position.set(-8 + 32 * (t-0.25), 5, 0); // T
+                    else if (t < 0.75) e.position.set(0, 5 - 40 * (t-0.5), 0); // C
+                    else e.position.set(0 - 32 * (t-0.75), -5, 0); // B
+                } else if (branch === 1) { // Center branch only
+                     e.position.set(0, 5 - 10 * t, 0);
+                } else { // Right Loop
+                    if (t < 0.25) e.position.set(0, 5, 0); // T
+                    else if (t < 0.5) e.position.set(0 + 32 * (t-0.25), 5, 0); // T
+                    else if (t < 0.75) e.position.set(8, 5 - 40 * (t-0.5), 0); // R
+                    else e.position.set(8 - 32 * (t-0.75), -5, 0); // B
+                }
+                
+                // Opacity based on presence
+                e.visible = current > 0.001;
+            });
+
+            circuitGroup.rotation.y = Math.sin(state.time * 0.5) * 0.1;
+            renderer.render(scene, camera);
+        }
+
+        /**
+         * UI HANDLERS
+         */
+        function setLaw(n) {
+            state.law = n;
+            document.querySelectorAll('.law-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${n}`).classList.add('active');
+            document.getElementById('active-law-desc').innerHTML = LAW_TEXT[n];
+            
+            // Highlight specific elements in the scene if needed
+        }
+
+        function setupInteractions() {
+            const sliders = ['v1', 'r1', 'r2', 'r3'];
+            sliders.forEach(id => {
+                document.getElementById(`${id}-slider`).addEventListener('input', (e) => {
+                    state[id] = parseFloat(e.target.value);
+                    document.getElementById(`${id}-label`).innerText = state[id] + (id === 'v1' ? " V" : " Ω");
+                });
+            });
+
+            // Camera Controls
+            let isDragging = false, lx, ly;
+            const container = document.getElementById('simulation-panel');
+            container.addEventListener('mousedown', e => { isDragging = true; lx = e.clientX; ly = e.clientY; });
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', e => {
+                if (!isDragging) return;
+                circuitGroup.rotation.y += (e.clientX - lx) * 0.01;
+                circuitGroup.rotation.x += (e.clientY - ly) * 0.01;
+                lx = e.clientX; ly = e.clientY;
+            });
+
+            window.addEventListener('resize', () => {
+                const canvasCont = document.getElementById('canvas-container');
+                camera.aspect = canvasCont.clientWidth / canvasCont.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(canvasCont.clientWidth, canvasCont.clientHeight);
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

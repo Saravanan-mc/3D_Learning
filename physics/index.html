@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Lab | ProOS Elite</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --accent-physics: #7c3aed; 
+            --accent-hover: #6d28d9;
+            --accent-glow: rgba(124, 58, 237, 0.1);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: #e2e8f0;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+            --card-shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --card-radius: 18px;
+        }
+
+        [data-theme="dark"] {
+            --primary-bg: #0b0f1a;
+            --sidebar-bg: #111827;
+            --accent-physics: #a78bfa;
+            --accent-hover: #c4b5fd;
+            --accent-glow: rgba(167, 139, 250, 0.1);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(17, 24, 39, 0.8);
+            --glass-border: #1e293b;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--primary-bg);
+            background-image: 
+                radial-gradient(at 0% 0%, var(--accent-glow) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, var(--accent-glow) 0px, transparent 50%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            transition: background-color 0.4s ease;
+        }
+
+        /* Sidebar Stats */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--glass-border);
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px 60px;
+            max-width: 1400px;
+        }
+
+        .lab-stat-card {
+            background: var(--primary-bg);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .lab-stat-card h4 {
+            margin: 0;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .lab-stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-top: 5px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Header UI */
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .theme-toggle {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent-physics);
+            transform: rotate(15deg);
+        }
+
+        .header-section h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-section h1 i {
+            color: var(--accent-physics);
+        }
+
+        /* Advanced Controls */
+        .toolbar {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .input-pro {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 14px 14px 14px 48px;
+            border-radius: 14px;
+            color: var(--text-main);
+            font-family: inherit;
+            width: 100%;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-pro:focus {
+            border-color: var(--accent-physics);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        .select-pro {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 0 20px;
+            border-radius: 14px;
+            color: var(--text-main);
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* Grid & Cards */
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .file-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius);
+            padding: 24px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            box-shadow: var(--card-shadow);
+            position: relative;
+        }
+
+        .file-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--card-shadow-hover);
+            border-color: var(--accent-physics);
+        }
+
+        .file-card::after {
+            content: 'VIEW MODULE';
+            position: absolute;
+            bottom: 20px;
+            right: 24px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--accent-physics);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .file-card:hover::after {
+            opacity: 1;
+        }
+
+        .card-icon {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+        }
+
+        .file-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 4px 10px;
+            background: var(--primary-bg);
+            border-radius: 6px;
+            color: var(--accent-physics);
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .file-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0 0 10px 0;
+        }
+
+        .file-summary {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+
+        .file-meta {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--glass-border);
+            padding-top: 16px;
+        }
+
+        /* Animations */
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .file-card {
+            animation: fadeInScale 0.4s ease forwards;
+        }
+
+        /* Empty State */
+        #emptyState {
+            text-align: center;
+            padding: 100px 0;
+            display: none;
+        }
+
+        #emptyState i { font-size: 4rem; color: var(--text-muted); opacity: 0.3; margin-bottom: 20px; }
+
+        @media (max-width: 1024px) {
+            .sidebar { display: none; }
+            .main-content { padding: 40px 20px; }
+            .toolbar { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+<aside class="sidebar">
+    <div class="header-section">
+        <h2 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 10px;">PRO OS | LABS</h2>
+        <div class="size-badge" style="font-family: 'Fira Code'; font-size: 0.7rem; color: var(--text-muted)">Terminal Connected</div>
+    </div>
+
+    <div class="lab-stat-card">
+        <h4>Modules</h4>
+        <div class="value" id="statCount">12</div>
+    </div>
+
+    <div class="lab-stat-card">
+        <h4>Storage</h4>
+        <div class="value" id="statSize">224 KB</div>
+    </div>
+
+    <div class="lab-stat-card">
+        <h4>Active Branch</h4>
+        <div class="value" style="font-size: 1rem; color: var(--accent-physics)">main/stable-26</div>
+    </div>
+
+    <div style="margin-top: auto;">
+        <p style="font-size: 0.7rem; color: var(--text-muted);">© 2026 Physics Frameworks. All theoretical computations verified.</p>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div class="header-top">
+        <a href="#" class="back-btn" style="text-decoration: none; color: var(--text-muted); font-weight: 600; font-size: 0.9rem;">
+            <i class="fas fa-chevron-left"></i> ESCAPE TO TERMINAL
+        </a>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
+    <header class="header-section" style="margin-bottom: 50px;">
+        <h1><i class="fas fa-atom"></i> Physics Lab Pro</h1>
+        <p>Advanced computational repository for theoretical mechanics, electromagnetic field simulations, and orbital dynamics.</p>
+    </header>
+
+    <div class="toolbar">
+        <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="fileSearch" class="input-pro" placeholder="Search by name, category, or law...">
+        </div>
+        <select id="categoryFilter" class="select-pro">
+            <option value="all">Categories: All</option>
+            <option value="Mechanics">Mechanics</option>
+            <option value="Newtonian">Newtonian</option>
+            <option value="Electromagnetism">Electromagnetism</option>
+            <option value="Optics">Optics</option>
+            <option value="Astrophysics">Astrophysics</option>
+            <option value="Circuits">Circuits</option>
+        </select>
+        <select id="sortFilter" class="select-pro">
+            <option value="name">Sort: Name (A-Z)</option>
+            <option value="size">Sort: Size (Largest)</option>
+            <option value="date">Sort: Date (Newest)</option>
+        </select>
+    </div>
+
+    <div class="file-grid" id="fileGrid"></div>
+
+    <div id="emptyState">
+        <i class="fas fa-ghost"></i>
+        <h3>Observation Failed</h3>
+        <p>No modules found matching your query in this sector.</p>
+    </div>
+</main>
+
+<script>
+    const physicsModules = [
+        { id: 1, name: "Dynamics Master", icon: "⚙️", tag: "Mechanics", size: 22.4, date: "2026-01-27", href: "DynamicsMaster.html", desc: "Advanced vector analysis and force distribution modeling in three-dimensional space." },
+        { id: 2, name: "Faraday's Induction", icon: "🧲", tag: "Electromagnetism", size: 18.2, date: "2026-01-28", href: "Faraday.html", desc: "Electromagnetic induction simulations focusing on magnetic flux changes." },
+        { id: 3, name: "Physics Introduction", icon: "📔", tag: "General", size: 23.1, date: "2026-01-27", href: "Introduction.html", desc: "Core terminology, unit standards (SI), and historical theoretical frameworks." },
+        { id: 4, name: "Kepler's Laws", icon: "🪐", tag: "Astrophysics", size: 21.0, date: "2026-01-28", href: "Kepler.html", desc: "Elliptical orbits and planetary motion equations based on gravitational constants." },
+        { id: 5, name: "Kinematics", icon: "🏎️", tag: "Mechanics", size: 24.5, date: "2026-01-27", href: "Kinematics.html", desc: "Pure motion analysis without external force considerations." },
+        { id: 6, name: "Maxwell's Equations", icon: "⚡", tag: "Electromagnetism", size: 21.9, date: "2026-01-28", href: "Maxwell.html", desc: "The definitive unified theory of electricity, magnetism, and light waves." },
+        { id: 7, name: "Second Law (F=ma)", icon: "🍎", tag: "Newtonian", size: 12.4, date: "2026-01-28", href: "SecondLaw.html", desc: "Fundamental relationship between mass, acceleration, and force vectors." },
+        { id: 8, name: "Snell's Law", icon: "🌈", tag: "Optics", size: 24.2, date: "2026-01-28", href: "Snell.html", desc: "Light refraction indices and boundary interaction simulations." },
+        { id: 9, name: "Kirchhoff's Current", icon: "🔌", tag: "Circuits", size: 23.6, date: "2026-01-28", href: "firstKirchhoff.html", desc: "Nodal analysis using the principle of conservation of electric charge." },
+        { id: 10, name: "First Law (Inertia)", icon: "🛑", tag: "Newtonian", size: 11.8, date: "2026-01-28", href: "firstlow.html", desc: "The concept of inertia and the behavior of bodies in equilibrium." },
+        { id: 11, name: "Ohm's Law", icon: "🔋", tag: "Electricity", size: 14.1, date: "2026-01-28", href: "ohm.html", desc: "V=IR relationship for linear resistors and ohmic materials." },
+        { id: 12, name: "Third Law (Action)", icon: "🤝", tag: "Newtonian", size: 12.7, date: "2026-01-28", href: "thiredlaw.html", desc: "Symmetry of interaction forces between two distinct physical bodies." },
+        { id: 13, name: "basic", icon: "🤝", tag: "", size: 12.7, date: "2026-01-28", href: "aa.html", desc: "All Basic." }
+    ];
+
+    const fileGrid = document.getElementById('fileGrid');
+    const searchInput = document.getElementById('fileSearch');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const emptyState = document.getElementById('emptyState');
+    const statCount = document.getElementById('statCount');
+    const statSize = document.getElementById('statSize');
+
+    function toggleTheme() {
+        const body = document.body;
+        const icon = document.querySelector('.theme-toggle i');
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        
+        body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        icon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+        localStorage.setItem('lab-theme', isDark ? 'light' : 'dark');
+    }
+
+    // Check saved theme
+    const savedTheme = localStorage.getItem('lab-theme');
+    if (savedTheme === 'dark') toggleTheme();
+
+    function renderCards() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const category = categoryFilter.value;
+        const sortBy = sortFilter.value;
+
+        let filtered = physicsModules.filter(m => {
+            const matchesSearch = m.name.toLowerCase().includes(searchTerm) || m.tag.toLowerCase().includes(searchTerm);
+            const matchesCategory = category === 'all' || m.tag === category;
+            return matchesSearch && matchesCategory;
+        });
+
+        // Sorting Logic
+        filtered.sort((a, b) => {
+            if (sortBy === 'name') return a.name.localeCompare(b.name);
+            if (sortBy === 'size') return b.size - a.size;
+            if (sortBy === 'date') return new Date(b.date) - new Date(a.date);
+            return 0;
+        });
+
+        // Update Stats
+        statCount.textContent = filtered.length;
+        const totalSize = filtered.reduce((acc, curr) => acc + curr.size, 0).toFixed(1);
+        statSize.textContent = `${totalSize} KB`;
+
+        fileGrid.innerHTML = '';
+        
+        if (filtered.length === 0) {
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        filtered.forEach((m, index) => {
+            const card = document.createElement('a');
+            card.href = m.href;
+            card.className = 'file-card';
+            card.style.animationDelay = `${index * 0.04}s`;
+            
+            card.innerHTML = `
+                <div class="card-icon">${m.icon}</div>
+                <div class="file-tag">${m.tag}</div>
+                <h3 class="file-title">${m.name}</h3>
+                <p class="file-summary">${m.desc}</p>
+                <div class="file-meta">
+                    <span>${m.size.toFixed(1)} KB</span>
+                    <span>${m.date.split('-').slice(1).join('/')}</span>
+                </div>
+            `;
+            fileGrid.appendChild(card);
+        });
+    }
+
+    searchInput.addEventListener('input', renderCards);
+    categoryFilter.addEventListener('change', renderCards);
+    sortFilter.addEventListener('change', renderCards);
+
+    renderCards();
+</script>
+
+</body>
+</html>

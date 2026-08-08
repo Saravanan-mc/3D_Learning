@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faraday's Law | Pro Induction Lab</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+
+        :root {
+            --bg-deep: #02040a;
+            --accent-primary: #f59e0b; /* Amber */
+            --accent-secondary: #ef4444; /* Red */
+            --copper: #d97706;
+        }
+
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-deep); 
+            color: #f8fafc; 
+            user-select: none;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        #interaction-panel {
+            width: 400px;
+            height: 100vh;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+            position: relative;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        input[type=range] { 
+            width: 100%; height: 4px; background: #1e293b; border-radius: 99px; appearance: none; cursor: pointer; 
+        }
+        input[type=range]::-webkit-slider-thumb { 
+            appearance: none; width: 14px; height: 14px; background: var(--accent-primary); border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+
+        .label-upper {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 800;
+            color: #64748b;
+        }
+
+        .galvanometer-meter {
+            height: 80px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 40px 40px 4px 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .needle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            height: 70px;
+            background: #ef4444;
+            transform-origin: bottom center;
+            transition: transform 0.05s linear;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="flex h-screen w-screen overflow-hidden">
+        <!-- LEFT PANEL: CONTROLS & ANALYTICS -->
+        <aside id="interaction-panel" class="bg-slate-950/90 shadow-2xl">
+            <!-- Header -->
+            <div class="p-8 border-b border-white/5 bg-gradient-to-b from-amber-500/5 to-transparent">
+                <div class="flex items-center gap-2 mb-1">
+                    <div class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></div>
+                    <h1 class="text-xl font-extrabold tracking-tight text-white italic">INDUCTION<span class="text-amber-400">LAB</span></h1>
+                </div>
+                <p class="label-upper">Faraday's Law Simulator v4.0</p>
+            </div>
+
+            <!-- Meters Section -->
+            <div class="p-6 border-b border-white/5 space-y-4 bg-black/20">
+                <div class="galvanometer-meter">
+                    <div id="needle" class="needle"></div>
+                    <div class="absolute bottom-2 w-full text-center text-[8px] mono text-slate-500 font-bold uppercase tracking-tighter">
+                        - Voltage +
+                    </div>
+                </div>
+                <div class="flex justify-between items-center px-2">
+                    <span class="label-upper">Output EMF</span>
+                    <span id="voltage-readout" class="mono text-amber-400 text-lg font-bold">0.00 V</span>
+                </div>
+            </div>
+
+            <!-- Sliders -->
+            <div class="px-8 space-y-8 flex-grow overflow-y-auto pt-6 pb-8">
+                <div class="space-y-4">
+                    <div class="flex justify-between items-end">
+                        <label class="label-upper">Magnet Position (Z)</label>
+                        <span id="pos-label" class="mono text-white text-sm font-bold">10.0</span>
+                    </div>
+                    <input type="range" id="pos-slider" min="-15" max="15" step="0.1" value="10">
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-end">
+                        <label class="label-upper">Magnet Strength (B)</label>
+                        <span id="strength-label" class="mono text-red-400 text-sm font-bold">50</span>
+                    </div>
+                    <input type="range" id="strength-slider" min="10" max="200" step="5" value="50">
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-end">
+                        <label class="label-upper">Coil Radius (r)</label>
+                        <span id="radius-label" class="mono text-orange-400 text-sm font-bold">3.5</span>
+                    </div>
+                    <input type="range" id="radius-slider" min="1.5" max="6" step="0.1" value="3.5">
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-end">
+                        <label class="label-upper">Number of Loops (N)</label>
+                        <span id="loops-label" class="mono text-amber-400 text-sm font-bold">15</span>
+                    </div>
+                    <input type="range" id="loops-slider" min="2" max="50" step="1" value="15">
+                </div>
+
+                <!-- Theory Box -->
+                <div class="space-y-3 pt-4">
+                    <h2 class="label-upper">Mathematical Model</h2>
+                    <div class="bg-black/40 p-5 rounded-xl border border-white/5">
+                        <div class="text-xl font-bold mono text-center mb-4 text-amber-500">
+                            ε = -N (dΦ<sub>B</sub>/dt)
+                        </div>
+                        <p class="text-[11px] leading-relaxed text-slate-400 italic">
+                            Voltage is induced when the magnetic flux through the coil changes. Faster motion or stronger magnets result in higher peaks.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Footer -->
+            <div class="p-6 border-t border-white/5 bg-slate-900/50 space-y-2">
+                <div class="flex gap-2">
+                    <button id="auto-btn" class="flex-1 py-3 rounded-xl bg-white text-black font-black text-[10px] tracking-widest hover:scale-[1.02] transition-transform active:scale-95">AUTO OSCILLATE</button>
+                    <button id="view-btn" class="px-5 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    </button>
+                </div>
+                <button id="reset-btn" class="w-full py-2 text-[9px] font-bold text-slate-500 uppercase tracking-widest hover:text-white transition-colors">Reset System</button>
+            </div>
+        </aside>
+
+        <!-- RIGHT PANEL: 3D VIEWPORT -->
+        <main class="flex-1 relative">
+            <div id="canvas-container" class="w-full h-full"></div>
+            
+            <!-- Overlay Info -->
+            <div class="absolute top-8 left-8 pointer-events-none">
+                <div class="glass px-4 py-2 rounded-lg inline-flex items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                        <span class="text-[9px] font-bold tracking-widest uppercase text-slate-400">North Pole</span>
+                    </div>
+                    <div class="w-px h-3 bg-white/10"></div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <span class="text-[9px] font-bold tracking-widest uppercase text-slate-400">South Pole</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute bottom-8 right-8 text-right pointer-events-none opacity-40">
+                <p class="text-[10px] mono uppercase tracking-widest">DRAG: Orbit • SCROLL: Zoom • SHIFT+DRAG: Pan</p>
+                <p class="text-[8px] mono text-slate-500 mt-1 uppercase">Electromagnetic Field Simulation Engine</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /**
+         * PHYSICS STATE
+         */
+        const state = {
+            pos: 10,
+            prevPos: 10,
+            loops: 15,
+            strength: 50,
+            radius: 3.5,
+            voltage: 0,
+            isAuto: false,
+            showLines: true,
+            time: 0
+        };
+
+        let scene, camera, renderer, magnet, solenoid, bulb, fieldLinesGroup, mainGroup, stars;
+
+        /**
+         * INITIALIZATION
+         */
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x02040a);
+
+            const container = document.getElementById('canvas-container');
+            camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(16, 12, 20);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            mainGroup = new THREE.Group();
+            scene.add(mainGroup);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+            const pLight = new THREE.PointLight(0xffffff, 1.2, 100);
+            pLight.position.set(10, 20, 10);
+            scene.add(pLight);
+
+            createStarfield();
+            createMagnet();
+            createSolenoid();
+            createBulb();
+            createFieldLines();
+            setupEvents();
+            
+            animate();
+        }
+
+        function createStarfield() {
+            const geo = new THREE.BufferGeometry();
+            const count = 2000;
+            const pos = new Float32Array(count * 3);
+            for(let i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * 600;
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.7, transparent: true, opacity: 0.3 });
+            stars = new THREE.Points(geo, mat);
+            scene.add(stars);
+        }
+
+        function createMagnet() {
+            const group = new THREE.Group();
+            const sGeo = new THREE.BoxGeometry(1.8, 1.8, 3.2);
+            const sMat = new THREE.MeshPhongMaterial({ color: 0x1e40af, shininess: 90 });
+            const sMesh = new THREE.Mesh(sGeo, sMat);
+            sMesh.position.z = -1.6;
+            group.add(sMesh);
+
+            const nGeo = new THREE.BoxGeometry(1.8, 1.8, 3.2);
+            const nMat = new THREE.MeshPhongMaterial({ color: 0xef4444, shininess: 90 });
+            const nMesh = new THREE.Mesh(nGeo, nMat);
+            nMesh.position.z = 1.6;
+            group.add(nMesh);
+
+            magnet = group;
+            mainGroup.add(magnet);
+        }
+
+        function createSolenoid() {
+            if (solenoid) mainGroup.remove(solenoid);
+            const points = [];
+            const r = state.radius;
+            const h = 8;
+            const turns = state.loops;
+            for (let i = 0; i <= 600; i++) {
+                const t = i / 600;
+                const angle = t * turns * Math.PI * 2;
+                const x = r * Math.cos(angle);
+                const y = r * Math.sin(angle);
+                const z = (t - 0.5) * h;
+                points.push(new THREE.Vector3(x, y, z));
+            }
+            const curve = new THREE.CatmullRomCurve3(points);
+            const geo = new THREE.TubeGeometry(curve, 300, 0.14, 8, false);
+            const mat = new THREE.MeshPhongMaterial({ color: 0xd97706, shininess: 100, specular: 0x444444 });
+            solenoid = new THREE.Mesh(geo, mat);
+            mainGroup.add(solenoid);
+        }
+
+        function createBulb() {
+            const group = new THREE.Group();
+            group.position.set(0, 8, 0);
+            const sGeo = new THREE.CylinderGeometry(0.6, 0.6, 1, 16);
+            const sMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9 });
+            group.add(new THREE.Mesh(sGeo, sMat));
+
+            const bGeo = new THREE.SphereGeometry(1.5, 32, 32);
+            const bMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 });
+            bulb = new THREE.Mesh(bGeo, bMat);
+            bulb.position.y = 1.6;
+            group.add(bulb);
+            mainGroup.add(group);
+        }
+
+        function createFieldLines() {
+            if (fieldLinesGroup) mainGroup.remove(fieldLinesGroup);
+            fieldLinesGroup = new THREE.Group();
+            const count = 12;
+            const mat = new THREE.LineBasicMaterial({ color: 0x64748b, transparent: true, opacity: 0.2 });
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2;
+                const pts = [];
+                for (let j = 0; j <= 40; j++) {
+                    const t = j / 40;
+                    const spread = 2.2 + Math.sin(t * Math.PI) * 7;
+                    const z = (t - 0.5) * 22;
+                    pts.push(new THREE.Vector3(spread * Math.cos(angle), spread * Math.sin(angle), z));
+                }
+                const curve = new THREE.CatmullRomCurve3(pts);
+                const geo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(60));
+                fieldLinesGroup.add(new THREE.Line(geo, mat));
+            }
+            mainGroup.add(fieldLinesGroup);
+        }
+
+        /**
+         * PHYSICS LOGIC
+         */
+        function calculateFlux(z) {
+            const r = state.radius;
+            const strength = state.strength;
+            return (strength * r * r) / Math.pow(z * z + r * r, 1.5);
+        }
+
+        function updatePhysics() {
+            if (state.isAuto) {
+                state.time += 0.04;
+                state.pos = Math.sin(state.time) * 11;
+                document.getElementById('pos-slider').value = state.pos;
+                document.getElementById('pos-label').innerText = state.pos.toFixed(1);
+            }
+
+            const currentFlux = calculateFlux(state.pos);
+            const prevFlux = calculateFlux(state.prevPos);
+            
+            const rawEMF = (currentFlux - prevFlux) * state.loops * 15;
+            state.voltage = THREE.MathUtils.lerp(state.voltage, rawEMF, 0.3);
+            state.prevPos = state.pos;
+
+            // UI Feedback
+            document.getElementById('voltage-readout').innerText = state.voltage.toFixed(2) + ' V';
+            const needle = document.getElementById('needle');
+            needle.style.transform = `rotate(${Math.max(-65, Math.min(65, state.voltage * 40))}deg)`;
+
+            // Visual Sync
+            magnet.position.z = state.pos;
+            fieldLinesGroup.position.z = state.pos;
+            fieldLinesGroup.visible = state.showLines;
+
+            // Glow Effect
+            const glow = Math.abs(state.voltage) * 2.2;
+            bulb.material.emissive = new THREE.Color(0xfbbf24);
+            bulb.material.emissiveIntensity = glow;
+            bulb.material.opacity = 0.2 + Math.min(glow * 0.5, 0.6);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            updatePhysics();
+            stars.rotation.z += 0.0002;
+            renderer.render(scene, camera);
+        }
+
+        /**
+         * INTERFACE HANDLERS
+         */
+        function setupEvents() {
+            const updateVal = (id, key) => {
+                const el = document.getElementById(id);
+                el.addEventListener('input', e => {
+                    const val = parseFloat(e.target.value);
+                    state[key] = val;
+                    document.getElementById(id.replace('-slider', '-label')).innerText = val.toFixed(key === 'pos' ? 1 : 0);
+                    if (key === 'radius' || key === 'loops') createSolenoid();
+                });
+            };
+
+            updateVal('pos-slider', 'pos');
+            updateVal('strength-slider', 'strength');
+            updateVal('radius-slider', 'radius');
+            updateVal('loops-slider', 'loops');
+
+            document.getElementById('auto-btn').addEventListener('click', e => {
+                state.isAuto = !state.isAuto;
+                e.target.innerText = state.isAuto ? "STOP ENGINE" : "AUTO OSCILLATE";
+                e.target.classList.toggle('bg-white');
+                e.target.classList.toggle('bg-amber-600');
+                e.target.classList.toggle('text-white');
+            });
+
+            document.getElementById('view-btn').addEventListener('click', () => {
+                state.showLines = !state.showLines;
+            });
+
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                location.reload();
+            });
+
+            // Advanced Controls
+            let dragging = false, lx, ly;
+            const container = document.getElementById('canvas-container');
+            container.addEventListener('mousedown', e => { dragging = true; lx = e.clientX; ly = e.clientY; });
+            window.addEventListener('mouseup', () => dragging = false);
+            window.addEventListener('mousemove', e => {
+                if (!dragging) return;
+                const dx = (e.clientX - lx) * 0.005, dy = (e.clientY - ly) * 0.005;
+                if (e.shiftKey) {
+                    camera.position.x -= dx * 10;
+                    camera.position.y += dy * 10;
+                } else {
+                    mainGroup.rotation.y += dx;
+                    mainGroup.rotation.x += dy;
+                }
+                lx = e.clientX; ly = e.clientY;
+            });
+
+            window.addEventListener('wheel', e => {
+                camera.position.z = Math.min(100, Math.max(10, camera.position.z + e.deltaY * 0.05));
+            }, { passive: true });
+
+            window.addEventListener('resize', () => {
+                const w = container.clientWidth, h = container.clientHeight;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Sanctuary | ProOS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #fdfdfd;
+            --accent-math: #3b82f6; /* Changed to Blue for Math */
+            --accent-glow: rgba(59, 130, 246, 0.15);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --shadow-md: 0 12px 24px -8px var(--accent-glow);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            background-image: radial-gradient(at 0% 0%, #eff6ff 0, transparent 50%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--accent-math);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            transition: var(--transition);
+        }
+        .back-btn:hover { transform: translateX(-5px); }
+
+        .header-section {
+            margin-bottom: 40px;
+        }
+
+        .header-section h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--text-main);
+        }
+
+        .header-section p {
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .search-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 400px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .search-box input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .file-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .file-card:hover {
+            transform: translateY(-5px);
+            background: white;
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-math);
+        }
+
+        .file-icon {
+            font-size: 2rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .file-name {
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-info {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #eff6ff;
+            color: #1e40af;
+            font-weight: 600;
+            align-self: flex-start;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="index.php" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Terminal
+    </a>
+
+    <header class="header-section">
+        <h1>Math Sanctuary</h1>
+        <p>Quantitative Analysis & Geometric Proofs</p>
+    </header>
+
+    <div class="search-box">
+        <i class="fas fa-search" style="color: var(--accent-math)"></i>
+        <input type="text" id="fileSearch" placeholder="Filter math modules...">
+    </div>
+
+    <div class="file-grid" id="fileGrid">
+        
+        <a href="Arithmetic Mastery.html" class="file-card">
+            <span class="file-icon">➕</span>
+            <span class="tag">Foundation</span>
+            <span class="file-name">Arithmetic Mastery</span>
+            <div class="file-info"><span>22KB</span> <span>Jan 27</span></div>
+        </a>
+
+        <a href="Number Systems.html" class="file-card">
+            <span class="file-icon">🔢</span>
+            <span class="tag">Theory</span>
+            <span class="file-name">Number Systems</span>
+            <div class="file-info"><span>27KB</span> <span>Jan 27</span></div>
+        </a>
+
+        <a href="FactorMaster.html" class="file-card">
+            <span class="file-icon">➗</span>
+            <span class="tag">Algebra</span>
+            <span class="file-name">Factor Master</span>
+            <div class="file-info"><span>25KB</span> <span>Jan 27</span></div>
+        </a>
+
+        <a href="FractionsPercentagesMaster.html" class="file-card">
+            <span class="file-icon">🍰</span>
+            <span class="tag">Ratios</span>
+            <span class="file-name">Fractions & %</span>
+            <div class="file-info"><span>20KB</span> <span>Jan 27</span></div>
+        </a>
+
+        <a href="GeoMaster.html" class="file-card">
+            <span class="file-icon">📐</span>
+            <span class="tag">Geometry</span>
+            <span class="file-name">Geo Master</span>
+            <div class="file-info"><span>29KB</span> <span>Jan 27</span></div>
+        </a>
+
+        <a href="RatioMaster.html" class="file-card">
+            <span class="file-icon">⚖️</span>
+            <span class="tag">Logic</span>
+            <span class="file-name">Ratio Master</span>
+            <div class="file-info"><span>20KB</span> <span>Jan 27</span></div>
+        </a>
+
+        <a href="TrigMaster.html" class="file-card">
+            <span class="file-icon">∿</span>
+            <span class="tag">Calculus</span>
+            <span class="file-name">Trig Master</span>
+            <div class="file-info"><span>21KB</span> <span>Jan 27</span></div>
+        </a>
+
+    </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('fileSearch');
+    const cards = document.querySelectorAll('.file-card');
+
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        cards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            card.style.display = text.includes(term) ? 'flex' : 'none';
+        });
+    });
+</script>
+
+</body>
+</html>
